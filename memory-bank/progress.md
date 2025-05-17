@@ -24,6 +24,8 @@
 ## In Progress
 - Detailed architecture design
 - Component interface definitions
+- LLM-based parser interface design
+- LLM prompt system design
 
 ## Blocked Items
 - Implementation (waiting for final design decisions)
@@ -31,6 +33,8 @@
 
 ## Next Development Steps
 1. Finalize system architecture design
-2. Set up project structure and environment
-3. Define metadata schema
-4. Begin parser implementation 
+2. Define LLM prompt templates for key extraction tasks
+3. Design detailed LLM-based parser interfaces
+4. Set up project structure and environment
+5. Define metadata schema
+6. Begin parser implementation 

@@ -15,12 +15,14 @@
 7. [ ] Set up LLM API integration framework
 
 ### Phase 2: Code Parsing and Symbol Indexing
-1. [ ] Implement generic code parser interface
-2. [ ] Create Python parser implementation using AST/libCST
-3. [ ] Build symbol indexer to map fields/methods/constants to locations
-4. [ ] Implement file and line position tracking
-5. [ ] Create storage mechanism for symbol index
-6. [ ] Add basic parsing tests with test code files
+1. [ ] Implement generic code parser interface for LLM-based extraction
+2. [ ] Create Python parser implementation using LLM-based prompt extraction
+3. [ ] Design language-specific prompt templates for code parsing
+4. [ ] Implement prompt result validation and error handling for parse results
+5. [ ] Build symbol indexer to map fields/methods/constants to locations
+6. [ ] Implement file and line position tracking
+7. [ ] Create storage mechanism for symbol index
+8. [ ] Add basic parsing tests with test code files
 
 ### Phase 3: LLM Prompt Engineering System
 1. [ ] Design prompt templates for different extraction tasks
@@ -30,6 +32,15 @@
 5. [ ] Design prompt evaluation framework
 6. [ ] Create prompt template storage and versioning system
 7. [ ] Add tests for LLM prompt system
+
+### Phase 3.5: LLM-Metadata Extraction Integration
+1. [ ] Design specialized prompts for metadata extraction from parsed code
+2. [ ] Implement prompt chaining for complex extraction tasks
+3. [ ] Create metadata validation and normalization pipeline
+4. [ ] Build confidence scoring system for extracted metadata
+5. [ ] Implement fallback strategies for low-confidence extractions
+6. [ ] Develop context enrichment for improved extraction accuracy
+7. [ ] Add tests for integrated LLM-metadata extraction
 
 ### Phase 4: Metadata Extraction System
 1. [ ] Implement graph schema for DataEntity and Field nodes with relationships
@@ -102,12 +113,14 @@
 - [x] Update project brief with detailed requirements
 - [x] Develop comprehensive implementation plan
 - [x] Define graph schema for metadata storage
+- [ ] Design initial LLM prompt templates for code parsing and extraction
+- [ ] Design LLM-based parser interface and component architecture
 - [ ] Set up project structure and environment
 - [ ] Begin implementing core parsing system
 
 ## Notes
-- LLM prompts are required for extracting semantic information from code
+- LLM prompts are required for extracting semantic information and metadata from code (primary method)
 - The graph structure requires DataEntity and Field nodes with specific relationships
-- Need to balance between static analysis and LLM-based extraction
+- Need to balance between LLM-based extraction and any static analysis as needed for structure or performance
 - Should support both field-level and entity-level lineage tracking
 - Chunking strategy (~40 lines with overlap) is specified for vector storage 
