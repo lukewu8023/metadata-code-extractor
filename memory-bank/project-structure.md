@@ -3,221 +3,146 @@
 ## Directory Structure
 
 ```
-metadata_code_extractor/
-├── README.md                  # Project overview and documentation
-├── pyproject.toml             # Project configuration and dependencies
-├── setup.py                   # Installation script
-├── .gitignore                 # Git ignore file
-├── .env.example               # Example environment configuration
-├── requirements.txt           # Project dependencies
-├── requirements-dev.txt       # Development dependencies
-├── metadata_code_extractor/        # Main package
-│   ├── __init__.py            # Package initialization
-│   ├── cli.py                 # Command-line interface
-│   ├── config.py              # Configuration management
-│   ├── constants.py           # Constants and defaults
-│   ├── exceptions.py          # Custom exceptions
-│   ├── logging_config.py      # Logging configuration
-│   ├── version.py             # Version information
-│   ├── parser/                # Parser component
-│   │   ├── __init__.py
-│   │   ├── base.py            # Base parser interface
-│   │   ├── llm_parser.py      # LLM-based parser implementation
-│   │   ├── python_parser.py   # Python-specific parser
-│   │   ├── chunking.py        # Code chunking utilities
-│   │   └── utils.py           # Parser utilities
-│   ├── prompts/               # LLM prompt management
-│   │   ├── __init__.py
-│   │   ├── template.py        # Prompt template base class
-│   │   ├── template_manager.py # Template management
-│   │   ├── confidence.py      # Confidence scoring utilities
-│   │   ├── response_parser.py # LLM response parsing
-│   │   └── templates/         # Prompt template files
-│   │       ├── entity/        # Entity extraction templates
-│   │       ├── field/         # Field extraction templates
-│   │       ├── relationship/  # Relationship extraction templates
-│   │       ├── validation/    # Validation rule templates
-│   │       └── transformation/ # Transformation templates
-│   ├── llm/                   # LLM integration
-│   │   ├── __init__.py
-│   │   ├── client.py          # LLM API client
-│   │   ├── provider.py        # Provider interface
-│   │   ├── openai.py          # OpenAI provider
-│   │   ├── anthropic.py       # Anthropic provider
-│   │   ├── cache.py           # Response caching
-│   │   └── error_handler.py   # Error handling and retry logic
-│   ├── metadata/              # Metadata extraction
-│   │   ├── __init__.py
-│   │   ├── extractor.py       # Main extractor class
-│   │   ├── entity.py          # Entity models
-│   │   ├── field.py           # Field models
-│   │   ├── relationship.py    # Relationship models
-│   │   ├── validation.py      # Validation rule models
-│   │   ├── transformation.py  # Transformation models
-│   │   └── schema.py          # Schema definition
-│   ├── symbols/               # Symbol management
-│   │   ├── __init__.py
-│   │   ├── indexer.py         # Symbol indexer
-│   │   ├── symbol_map.py      # Symbol map implementation
-│   │   └── location.py        # Code location utilities
-│   ├── storage/               # Data storage
-│   │   ├── __init__.py
-│   │   ├── graph/             # Graph database integration
-│   │   │   ├── __init__.py
-│   │   │   ├── adapter.py     # Graph DB adapter interface
-│   │   │   ├── neo4j.py       # Neo4j implementation
-│   │   │   └── queries.py     # Graph queries
-│   │   ├── vector/            # Vector database integration
-│   │   │   ├── __init__.py
-│   │   │   ├── adapter.py     # Vector DB adapter interface
-│   │   │   ├── embeddings.py  # Embedding generation
-│   │   │   └── providers/     # Vector DB providers
-│   │   └── local/             # Local storage options
-│   │       ├── __init__.py
-│   │       ├── json_store.py  # JSON file storage
-│   │       └── sqlite.py      # SQLite storage
-│   ├── scan/                  # Scanning logic
-│   │   ├── __init__.py
-│   │   ├── broad_scan.py      # Broad scan implementation
-│   │   ├── focused_scan.py    # Focused scan implementation
-│   │   ├── target_selection.py # Target selection for focused scan
-│   │   └── scheduler.py       # Scan task scheduling
-│   └── utils/                 # Utility functions
-│       ├── __init__.py
-│       ├── file_utils.py      # File handling utilities
-│       ├── language_utils.py  # Language detection
-│       ├── type_utils.py      # Type handling utilities
-│       └── performance.py     # Performance monitoring
-├── tests/                     # Test suite
+metadata_code_extractor_project/  # Root project folder
+├── README.md
+├── pyproject.toml
+├── setup.py                   # Optional, if not using pyproject.toml exclusively
+├── .gitignore
+├── .env.example
+├── requirements.txt           # Generated if needed, primary is pyproject.toml
+├── requirements-dev.txt
+├── metadata_code_extractor/        # Main package (source root)
 │   ├── __init__.py
-│   ├── conftest.py            # Test configuration
-│   ├── test_data/             # Test data files
-│   ├── unit/                  # Unit tests
+│   ├── cli.py                 # Command-line interface entry point
+│   ├── main.py                # Main application orchestrator (if needed beyond CLI)
+│   ├── core/
 │   │   ├── __init__.py
-│   │   ├── parser/            # Parser tests
-│   │   ├── prompts/           # Prompt tests
-│   │   ├── llm/               # LLM integration tests
-│   │   ├── metadata/          # Metadata tests
-│   │   └── ...                # Other unit tests
-│   └── integration/           # Integration tests
+│   │   ├── config.py          # Configuration loading (AppConfig)
+│   │   ├── exceptions.py      # Custom project-wide exceptions
+│   │   ├── logging_setup.py   # Logging configuration function
+│   │   └── models/            # Core Pydantic models
+│   │       ├── __init__.py
+│   │       ├── config_models.py # Pydantic models for configuration
+│   │       ├── llm_models.py    # Models for LLM interactions (ChatMessage, etc.)
+│   │       ├── db_models.py     # Models for DB items (NodeID, VectorItem, etc.)
+│   │       └── extraction_models.py # Models for extracted data (DataEntity, Field, etc.)
+│   ├── agents/
+│   │   ├── __init__.py
+│   │   └── llm_orchestrator_agent.py
+│   ├── scanners/
+│   │   ├── __init__.py
+│   │   ├── base_scanner.py
+│   │   ├── code_scanner.py
+│   │   └── document_scanner.py
+│   ├── evaluators/
+│   │   ├── __init__.py
+│   │   └── completeness_evaluator.py
+│   ├── llm_integrations/       # LLM client, providers, prompt management
+│   │   ├── __init__.py
+│   │   ├── llm_client.py      # LLMClient interface
+│   │   ├── providers/         # Adapters for different LLM providers (OpenAI, Anthropic, Mock)
+│   │   │   ├── __init__.py
+│   │   │   ├── base_provider.py
+│   │   │   └── openai_adapter.py
+│   │   ├── prompt_manager.py
+│   │   └── llm_cache.py
+│   ├── db_integrations/          # Database interaction layer
+│   │   ├── __init__.py
+│   │   ├── graph_db_interface.py
+│   │   ├── vector_db_interface.py
+│   │   ├── graph_db/          # Concrete Graph DB implementations
+│   │   │   ├── __init__.py
+│   │   │   └── neo4j_impl.py  # Example
+│   │   └── vector_db/         # Concrete Vector DB implementations
+│   │       ├── __init__.py
+│   │       └── chromadb_impl.py # Example
+│   ├── prompts/               # Directory for storing prompt templates (e.g., .txt, .md files)
+│   │   └── agent/
+│   │   └── scanner/
+│   ├── utils/
+│   │   ├── __init__.py
+│   │   ├── file_utils.py
+│   │   └── general_utils.py
+│   └── version.py
+├── tests/
+│   ├── __init__.py
+│   ├── conftest.py
+│   ├── test_data/
+│   ├── unit/
+│   │   ├── __init__.py
+│   │   ├── core/
+│   │   ├── agents/
+│   │   └── ...
+│   └── integration/
 │       ├── __init__.py
-│       ├── test_scan.py       # Scan integration tests
-│       ├── test_extraction.py # Extraction integration tests
-│       └── ...                # Other integration tests
-├── docs/                      # Documentation
-│   ├── index.md               # Documentation home
-│   ├── installation.md        # Installation guide
-│   ├── usage.md               # Usage guide
-│   ├── configuration.md       # Configuration reference
-│   ├── api/                   # API documentation
-│   ├── examples/              # Usage examples
-│   └── development/           # Development guide
-└── examples/                  # Example scripts
-    ├── basic_extraction.py    # Basic extraction example
-    ├── focused_scan.py        # Focused scan example
-    ├── graph_output.py        # Graph output example
-    └── custom_templates.py    # Custom prompt template example
+│       └── ...
+├── docs/
+│   └── ...
+├── examples/
+│   └── ...
+├── .cursor/                # Cursor-specific files (rules, etc.)
+│   └── rules/
+│       └── ...
+└── memory-bank/            # Project planning and context documents
+    ├── activeContext.md
+    ├── architecture.md
+    ├── graph-schema.md
+    ├── implementation-plan.md
+    ├── orchestration-architecture.md
+    ├── progress.md
+    ├── project-structure.md
+    ├── projectbrief.md
+    └── tasks.md
+    # Add other design docs here e.g.:
+    # llm-orchestrator-agent-design.md
+    # code-scanner-design.md
+    # ... etc.
 ```
 
-## Key Modules and Components
+## Key Modules and Components (Updated Alignment)
 
-### Parser Component
+### Core (`metadata_code_extractor/core/`)
+Centralizes foundational elements:
+-   **Configuration (`core/config.py`, `core/models/config_models.py`):** Manages application settings using Pydantic models as defined in `configuration-management-design.md`.
+-   **Logging (`core/logging_setup.py`):** Sets up the logging framework as per `logging-design.md`.
+-   **Core Data Models (`core/models/*.py`):** Contains all primary Pydantic models for configuration, LLM interactions, database items, and especially the extraction outputs (`ExtractedDataEntity`, `MetadataGapInfo`, etc.) as per `core-data-models.md`.
+-   **Custom Exceptions (`core/exceptions.py`):** Project-specific error classes.
 
-The parser component handles the parsing of source code files and extraction of metadata using LLM.
+### Agents (`metadata_code_extractor/agents/`)
+Contains the intelligent agent(s):
+-   **LLM Orchestrator Agent (`agents/llm_orchestrator_agent.py`):** Implements the logic described in `llm-orchestrator-agent-design.md`.
 
-**Key Files**:
-- `base.py`: Abstract base class for all parsers
-- `llm_parser.py`: Core LLM-based parser implementation
-- `python_parser.py`: Python-specific parser implementation
-- `chunking.py`: Code chunking utilities
+### Scanners (`metadata_code_extractor/scanners/`)
+Responsible for parsing code and documents:
+-   **Code Scanner (`scanners/code_scanner.py`):** Implements `code-scanner-design.md`.
+-   **Document Scanner (`scanners/document_scanner.py`):** Implements `document-scanner-design.md`.
 
-**Interfaces**:
-- `CodeParser`: Base interface for all parsers
-- `ParseResult`: Container for parsed code results
-- `CodeChunk`: Representation of a code chunk for LLM processing
+### Evaluators (`metadata_code_extractor/evaluators/`)
+For assessing metadata completeness:
+-   **Completeness Evaluator (`evaluators/completeness_evaluator.py`):** Implements `completeness-evaluator-design.md`.
 
-### Prompt Management
+### LLM Integrations (`metadata_code_extractor/llm_integrations/`)
+Handles all interactions with Large Language Models:
+-   **LLM Client (`llm_integrations/llm_client.py`):** Abstract interface and core client logic as per `llm-integration-design.md`.
+-   **Providers (`llm_integrations/providers/`):** Adapters for specific LLM services (OpenAI, Anthropic, Mock).
+-   **Prompt Manager (`llm_integrations/prompt_manager.py`):** Manages loading and formatting of prompt templates stored in the `metadata_code_extractor/prompts/` directory.
+-   **LLM Cache (`llm_integrations/llm_cache.py`):** Caching mechanism for LLM responses.
 
-The prompts component manages templates for LLM interactions and handles response parsing.
+### DB Integrations (`metadata_code_extractor/db_integrations/`)
+Abstracts database interactions:
+-   **Interfaces (`db_integrations/graph_db_interface.py`, `db_integrations/vector_db_interface.py`):** Abstract base classes as per `database-integration-design.md`.
+-   **Concrete Implementations (`db_integrations/graph_db/`, `db_integrations/vector_db/`):** Specific adapters for chosen database technologies.
 
-**Key Files**:
-- `template.py`: Prompt template base class
-- `template_manager.py`: Template management system
-- `response_parser.py`: LLM response parsing utilities
+### Prompts (`metadata_code_extractor/prompts/`)
+This directory will store the actual prompt template files (e.g., `.txt`, `.md`), organized by component (agent, scanner type). The `PromptManager` will load templates from here.
 
-**Interfaces**:
-- `PromptTemplate`: Base interface for all prompt templates
-- `PromptTemplateManager`: Management of prompt templates
-- `ResponseParser`: Parsing of LLM responses
+### CLI (`metadata_code_extractor/cli.py`)
+Command-line interface for the application.
 
-### LLM Integration
+### Utils (`metadata_code_extractor/utils/`)
+Shared utility functions.
 
-The LLM component handles interactions with LLM providers, including API calls, caching, and error handling.
-
-**Key Files**:
-- `client.py`: LLM client for API interactions
-- `provider.py`: Provider interface for different LLM services
-- `cache.py`: Caching mechanism for LLM responses
-
-**Interfaces**:
-- `LLMClient`: Client for LLM API interactions
-- `LLMProvider`: Interface for specific LLM providers
-- `LLMCache`: Caching interface for LLM responses
-
-### Metadata Extraction
-
-The metadata component defines the data models and extraction logic for metadata entities.
-
-**Key Files**:
-- `extractor.py`: Main extractor class
-- `entity.py`: Data entity models
-- `field.py`: Field models
-- `relationship.py`: Relationship models
-
-**Interfaces**:
-- `MetadataExtractor`: Main extraction interface
-- `Entity`, `Field`, `Relationship`, etc.: Data models
-
-### Symbol Management
-
-The symbols component handles the indexing and mapping of code symbols for lookup.
-
-**Key Files**:
-- `indexer.py`: Symbol indexer implementation
-- `symbol_map.py`: Symbol map data structure
-- `location.py`: Code location utilities
-
-**Interfaces**:
-- `SymbolIndexer`: Interface for building symbol indices
-- `SymbolMap`: Interface for symbol lookups
-- `Location`: Representation of code locations
-
-### Storage Integration
-
-The storage component handles integration with graph and vector databases for metadata storage.
-
-**Key Files**:
-- `graph/adapter.py`: Graph database adapter interface
-- `vector/adapter.py`: Vector database adapter interface
-- `local/json_store.py`: Local JSON storage
-
-**Interfaces**:
-- `GraphOutputAdapter`: Interface for graph database output
-- `VectorOutputAdapter`: Interface for vector database output
-
-### Scanning Logic
-
-The scan component implements the broad and focused scanning modes for code repositories.
-
-**Key Files**:
-- `broad_scan.py`: Broad scan implementation
-- `focused_scan.py`: Focused scan implementation
-- `target_selection.py`: Target selection for focused scans
-
-**Interfaces**:
-- `Scanner`: Base scanner interface
-- `BroadScanner`: Broad scan implementation
-- `FocusedScanner`: Focused scan implementation
+*(The rest of the file, including pyproject.toml example, .env.example, CLI structure example, and Development Guidelines, can remain largely the same but should be reviewed to ensure consistency with the updated main package structure. The main focus of this update is the directory layout and component mapping within the `metadata_code_extractor` source package.)*
 
 ## Configuration
 

@@ -144,10 +144,10 @@ classDiagram
     DataEntity "1" -- "*" Field : HAS_FIELD
     DataEntity "1" -- "*" DataEntity : INHERITS_FROM
     DataEntity "1" -- "*" DataEntity : REFERENCES_ENTITY
-    DataEntity "1" -- "*" Validation : HAS_VALIDATION {label: "entity-level"}
-    Field "1" -- "*" Validation : HAS_VALIDATION {label: "field-level"}
+    DataEntity "1" -- "*" Validation : HAS_VALIDATION
+    Field "1" -- "*" Validation : HAS_VALIDATION
     
-    Field "1" -- "*" Field : TRANSFORMED_FROM {label: "direct lineage"}
+    Field "1" -- "*" Field : TRANSFORMED_FROM
     Transformation "1" -- "*" Field : HAS_INPUT_FIELD
     Transformation "1" -- "*" Field : HAS_OUTPUT_FIELD
     Process "1" -- "*" Transformation : EXECUTES_TRANSFORMATION
@@ -158,7 +158,7 @@ classDiagram
     APIEndpoint "1" -- "*" DataEntity : MODIFIES_ENTITY
     
     DataEntity "1" -- "*" SLA : HAS_SLA
-    Field "1" -- "*" SLA : HAS_SLA {label: "field-level"}
+    Field "1" -- "*" SLA : HAS_SLA
     DataEntity "1" -- "*" Owner : OWNED_BY
 
     Document "1" -- "*" DataEntity : DOCUMENTS

@@ -1,3 +1,20 @@
+## NOTE: Superseded Document
+
+**This document (`architecture.md`) outlines some earlier architectural ideas for the Metadata Code Extractor project. While some concepts may still be relevant at a high level, this document has been largely superseded by the more detailed and up-to-date component design documents and the `memory-bank/orchestration-architecture.md` file, which reflects the current agent-driven approach.**
+
+Please refer to the following for the current architecture and design:
+*   `memory-bank/orchestration-architecture.md` (for the overall agent-driven system flow)
+*   `llm-orchestrator-agent-design.md`
+*   `code-scanner-design.md`
+*   `document-scanner-design.md`
+*   `completeness-evaluator-design.md`
+*   `llm-integration-design.md`
+*   `database-integration-design.md`
+*   `core-data-models.md`
+*   And other specific design documents in the `memory-bank` or root design folder.
+
+--- Original Content Below ---
+
 # Metadata Code Extractor - Architecture
 
 ## System Architecture Overview

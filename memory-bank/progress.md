@@ -3,7 +3,9 @@
 ## Project Timeline
 | Date    | Milestone                                          | Status      |
 |---------|----------------------------------------------------|-------------|
-| Current | Project Planning (Agent-Driven Architecture)       | In Progress |
+| Current | Detailed Design Phase                              | Complete    |
+| Current | Technology Validation Planning                     | In Progress |
+| TBD     | Technology Validation Execution                    | Not Started |
 | TBD     | Phase 1: Core Framework and Infrastructure         | Not Started |
 | TBD     | Phase 2: Core Components Development             | Not Started |
 | TBD     | Phase 3: Agent and Orchestration System          | Not Started |
@@ -18,27 +20,44 @@
 - Updated graph schema (`graph-schema.md`) for documents, chunks, and gaps
 - Developed comprehensive 5-phase implementation plan (`implementation-plan.md`) for agent-driven approach
 - Outlined high-level component interactions (LLM Agent, Scanners, Evaluator, DBs)
+- Detailed design for LLM Orchestrator Agent interface and logic (`llm-orchestrator-agent-design.md`)
+- Detailed design for Code Metadata Scanner (`code-scanner-design.md`)
+- Detailed design for Document Scanner interface and capabilities (`document-scanner-design.md`)
+- Detailed design for Completeness Evaluator rules and logic (`completeness-evaluator-design.md`)
+- Detailed design for LLM Integration (`llm-integration-design.md`)
+- Detailed design for Database Integration (`database-integration-design.md`)
+- Detailed design for Core Data Models (`core-data-models.md`)
+- Detailed design for Configuration Management (`configuration-management-design.md`)
+- Detailed design for Logging (`logging-design.md`)
+- Detailed design for Testing Strategy (`testing-strategy.md`)
 
 ## In Progress
-- Detailed design for LLM Orchestrator Agent interface and logic.
-- Detailed design for Document Scanner interface and capabilities.
-- Detailed design for Completeness Evaluator rules and logic.
-- Gap resolution strategy refinement (semantic search, targeted scans).
-- Selection of specific LLM provider and DB technologies for initial implementation.
-- Configuration system design details.
-- Initial test strategy and test case identification for Phase 1 & 2 components.
+- Technology Validation Plan:
+    - Finalize selection of specific LLM provider (e.g., OpenAI, Anthropic) and specific model versions.
+    - Finalize selection of specific Graph DB (e.g., Neo4j, Memgraph).
+    - Finalize selection of specific Vector DB (e.g., Chroma, FAISS, Weaviate).
+    - Document chosen technologies.
+    - Create Minimal Proofs of Concept (PoCs) for LLM, GraphDB, VectorDB.
+    - Verify build process and required dependencies for chosen tech.
+    - Validate base configurations for chosen tech.
 
 ## Blocked Items
-- Core implementation (pending finalization of detailed designs for Phase 1 components).
-- Testing environment setup (pending finalization of tech stack choices).
+- Phase 1 Implementation (pending completion of Technology Validation).
 
-## Next Development Steps (Corresponds to start of Implementation Plan - Phase 1)
-1.  **Finalize selection of LLM provider and Graph/Vector DB technologies.**
-2.  **Set up Python project structure, dependency management, and version control.**
-3.  **Implement the core configuration management system.**
-4.  **Establish the logging framework for the project.**
-5.  **Set up the testing infrastructure (e.g., `pytest`).**
-6.  **Develop the generic LLM client interface and an adapter for the chosen provider.**
-7.  **Define and implement the abstract interfaces for Graph DB and Vector DB interactions.**
-8.  **Implement initial Pydantic models for core data structures.**
-9.  **Begin detailed design and then implementation of Code Scanner (initial version) as per Phase 2.** 
+## Next Development Steps (Post Technology Validation)
+1.  **Project Setup & Environment (as per Phase 1 in `tasks.md`):**
+    *   Initialize Python project structure (`metadata_code_extractor/` and subdirectories).
+    *   Set up dependency management (e.g., `pyproject.toml` with chosen libraries).
+2.  **Implement core configuration management system** (as per `configuration-management-design.md`).
+3.  **Establish the logging framework** (as per `logging-design.md`).
+4.  **Set up the testing infrastructure** (`pytest`, initial structure as per `testing-strategy.md`).
+5.  **Develop LLM Integration Framework (as per `llm-integration-design.md`):**
+    *   Implement `LLMClient` interface.
+    *   Implement `LLMProviderAdapter` for the chosen LLM provider.
+    *   Implement basic `PromptManager`.
+    *   Implement initial `LLMCache`.
+6.  **Implement Database Interface Definitions (as per `database-integration-design.md`):**
+    *   Implement `GraphDBInterface` adapter for the chosen Graph DB.
+    *   Implement `VectorDBInterface` adapter for the chosen Vector DB.
+7.  **Implement Core Data Models (as per `core-data-models.md` and `tasks.md` Phase 1).**
+8.  **Implement Basic CLI Structure (as per `tasks.md` Phase 1).** 
