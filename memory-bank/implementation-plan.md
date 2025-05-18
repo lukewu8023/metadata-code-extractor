@@ -1,191 +1,126 @@
-# Metadata Code Extractor - Implementation Plan
+# Metadata Code Extractor - Implementation Plan (Agent-Driven Orchestration)
 
-## LLM-Based Parsing Approach
+## Project Goal
+To develop an intelligent metadata extraction system that uses an LLM Orchestrator Agent to scan code and documentation, identify metadata gaps, and iteratively fill those gaps using a combination of semantic search and targeted scanning.
 
-### Phase 1: Parser Interface & Core Design
+## Implementation Phases
 
-1. **Parser Interface Definition**
-   - Define abstract parser interface with LLM integration
-   - Design language-agnostic parsing approach
-   - Create parser configuration system
-   - Implement file loading and preprocessing utilities
+### Phase 1: Core Framework and Infrastructure (3-4 Weeks)
+Focus: Establish the foundational elements of the project.
 
-2. **LLM Integration Framework**
-   - Set up LLM provider client
-   - Design parameter management for LLM calls
-   - Implement rate limiting and batching
-   - Create response caching mechanism
-   - Build error handling and retry logic
+1.  **Project Setup & Environment:**
+    *   Initialize Python project structure (`metadata_code_extractor/` with subdirs: `core`, `agents`, `scanners`, `evaluators`, `db_integrations`, `prompts`, `utils`, `tests`, `cli`).
+    *   Set up dependency management (e.g., `requirements.txt` or `pyproject.toml` with Poetry/PDM).
+    *   Implement configuration management (e.g., Pydantic settings, `.env` files).
+    *   Establish logging framework (e.g., `logging` module configured for console/file output).
+    *   Set up testing infrastructure (e.g., `pytest` with basic test structure).
+2.  **LLM Integration Framework:**
+    *   Develop a generic LLM client interface (supporting chat, completions, embeddings).
+    *   Implement adapter for at least one LLM provider (e.g., OpenAI, Anthropic).
+    *   Basic prompt templating/management system.
+    *   Initial caching mechanism for LLM responses.
+3.  **Database Interface Definitions:**
+    *   Define abstract interfaces for Graph DB interaction (CRUD operations for nodes/relationships based on `graph-schema.md`).
+    *   Define abstract interfaces for Vector DB interaction (add embeddings, semantic search).
+4.  **Basic Data Models:**
+    *   Implement Pydantic models for core concepts (e.g., `CodeFile`, `DocumentFile`, `MetadataElement`, `Gap`).
 
-3. **Code Chunking System**
-   - Implement language-agnostic code chunking
-   - Design context preservation algorithm
-   - Create overlap management system
-   - Build chunk metadata tracking system
-   - Test chunking with different file sizes and types
+### Phase 2: Core Components Development (4-6 Weeks)
+Focus: Develop the primary processing components.
 
-4. **Prompt Template System**
-   - Design template storage and versioning
-   - Implement template loading and parameter substitution
-   - Create language-specific template variants
-   - Build template evaluation framework
-   - Design template selection logic based on extraction goals
+1.  **Code Metadata Scanner (Initial Version):**
+    *   Implement basic file traversal for code repositories.
+    *   Develop LLM-based extraction for primary code entities and fields (e.g., classes, functions, attributes in Python).
+    *   Prompts for extracting basic structured metadata from code snippets.
+    *   Functionality to generate embeddings for code snippets/comments.
+    *   Integration with Graph DB and Vector DB interfaces for storing results.
+    *   Develop `scan_code_repository(path)` and `scan_code_file_targeted(file_path, targets)` functions.
+2.  **Document Scanner (Initial Version):**
+    *   Implement basic file traversal for document directories.
+    *   Support for parsing at least one document type (e.g., Markdown).
+    *   LLM-based extraction for identifying document structure (headings, sections) and potential links to code entities (heuristic-based or simple LLM prompts).
+    *   Document chunking strategy (e.g., by section or fixed size with overlap).
+    *   Functionality to generate embeddings for document chunks.
+    *   Integration with Graph DB and Vector DB interfaces.
+    *   Develop `scan_document_repository(path)` and `scan_document_file_targeted(file_path, targets)` functions.
+3.  **Graph DB Implementation (Initial):**
+    *   Implement the Graph DB interface for a chosen provider (e.g., Neo4j connector, or a simpler local alternative like SQLite with JSON for early dev).
+    *   Functions to add/update nodes and relationships as per `graph-schema.md` (DataEntity, Field, Document, DocumentChunk initially).
+4.  **Vector DB Implementation (Initial):**
+    *   Implement the Vector DB interface for a chosen provider (e.g., FAISS, ChromaDB, Pinecone client).
+    *   Functions to add embeddings and perform similarity searches.
 
-### Phase 2: Python Parser Implementation
+### Phase 3: Agent and Orchestration System (5-7 Weeks)
+Focus: Develop the intelligent core of the system.
 
-1. **Python Language Parser**
-   - Implement Python-specific file handling
-   - Create Python language detection
-   - Design Python-specific preprocessing
-   - Build Python token management system
+1.  **LLM Orchestrator Agent (Core Logic):**
+    *   Implement agent state management.
+    *   Develop ReAct (Reason-Act) loop framework.
+    *   Prompts for agent reasoning: analyzing current state, deciding next actions (e.g., "Should I do a broad scan?", "Which gap to prioritize?", "How to resolve this gap?").
+    *   Ability to invoke Code Scanner, Document Scanner, and Completeness Evaluator.
+    *   Initial strategies for choosing between semantic search and targeted scanning.
+2.  **Completeness Evaluator (Initial Version):**
+    *   Define initial completeness criteria (e.g., "DataEntity has description?", "Field has type?").
+    *   Logic to query Graph DB and identify items failing criteria, creating `MetadataGap` nodes.
+    *   Prompts for summarizing and prioritizing gaps.
+    *   Develop `evaluate_completeness()` and `get_gaps()` functions.
+3.  **Orchestration Workflow (Initial):**
+    *   Implement the main sequence: Initial Code Scan -> Initial Doc Scan -> Initial Evaluation -> Basic Gap Loop (semantic search only for first iteration).
+    *   Store `MetadataGap` nodes in Graph DB.
 
-2. **Python Prompt Templates**
-   - Create entity extraction templates for Python
-   - Design field extraction templates for Python
-   - Implement relationship detection templates for Python
-   - Build lineage tracking templates for Python
-   - Test templates with diverse Python code samples
+### Phase 4: Integration, Iterative Improvement & Advanced Features (6-8 Weeks)
+Focus: Refine components, enable the full iterative loop, and add advanced capabilities.
 
-3. **Python Response Processing**
-   - Implement Python-specific JSON response parsing
-   - Create validation rules for Python entities and fields
-   - Build entity normalization for Python classes
-   - Design field type normalization for Python attributes
-   - Implement error correction for malformed responses
+1.  **Full Gap Resolution Loop:**
+    *   Enhance Agent's ability to choose and execute targeted scans (Code and Document) based on gap type and context.
+    *   Agent's ability to process results from semantic search and targeted scans to update Graph DB (potentially creating/updating entities/fields or linking documents).
+    *   Refined re-evaluation by Completeness Evaluator after each attempt.
+    *   Logic for the Agent to decide if a gap is resolved, needs more attempts, or requires human input.
+2.  **Advanced Scanning & Extraction:**
+    *   Code Scanner: Deeper analysis (e.g., relationships like `REFERENCES`, `TRANSFORMED_FROM`), more languages.
+    *   Document Scanner: Support for more formats (PDF), more sophisticated extraction of relationships between document parts and code entities (`REFERENCES_CODE_ENTITY`, `DESCRIBES`).
+3.  **Enhanced Completeness Evaluator:**
+    *   More sophisticated completeness rules and heuristics.
+    *   Better prioritization of gaps.
+4.  **Refined Agent Reasoning:**
+    *   Improved prompts for more nuanced decision-making and error handling.
+    *   Ability to learn from failed attempts (e.g., not retrying the same strategy on a persistent gap).
+5.  **Performance & Scalability:**
+    *   Implement caching strategies effectively.
+    *   Optimize DB queries and LLM calls (batching where possible).
 
-4. **Symbol Map Generation**
-   - Create Python symbol extraction from LLM responses
-   - Implement symbol location mapping
-   - Build symbol relationship graph
-   - Design symbol lookup system
-   - Create efficient serialization for symbol maps
+### Phase 5: CLI, Testing, and Documentation (4-5 Weeks)
+Focus: Make the system usable, robust, and well-documented.
 
-### Phase 3: Metadata Extraction Integration
+1.  **Command Line Interface (CLI):**
+    *   Develop CLI using a library like `click` or `argparse`.
+    *   Commands to initiate full scan, report on progress, query specific metadata.
+    *   Configuration options (paths, API keys, DB settings).
+2.  **Comprehensive Testing:**
+    *   Unit tests for all core components and utilities.
+    *   Integration tests for interactions between Agent, Scanners, Evaluator, and DBs.
+    *   End-to-end tests with sample code/doc repositories.
+    *   Develop a small, representative test dataset.
+3.  **User and Developer Documentation:**
+    *   User guide: How to install, configure, and run the extractor; understanding outputs.
+    *   Developer guide: Architecture overview, how to extend with new scanners/rules, API documentation for core modules.
+    *   Documentation for `graph-schema.md` and prompt templates.
+4.  **Packaging & Deployment Considerations:**
+    *   Package the application for distribution (e.g., PyPI).
+    *   (Optional) Dockerfile for containerized deployment.
 
-1. **Entity Processing Pipeline**
-   - Build entity extraction from LLM responses
-   - Create entity filtering and normalization
-   - Implement entity relationship resolution
-   - Design entity lineage tracking
-   - Create entity graph builder
+## Total Estimated Timeline: 22-30 Weeks
 
-2. **Field Processing Pipeline**
-   - Implement field extraction from LLM responses
-   - Build field validation and type normalization
-   - Create field relationship resolution
-   - Design field lineage tracking
-   - Implement field graph connections
+## Key Milestones & Deliverables:
+- **End of Phase 1:** Core framework setup, basic LLM/DB interfaces.
+- **End of Phase 2:** Initial versions of Code and Document Scanners, basic DB implementations working.
+- **End of Phase 3:** Orchestrator Agent can run initial scans, evaluate completeness, and attempt semantic search for gaps.
+- **End of Phase 4:** Full iterative gap resolution loop functional; advanced scanning capabilities integrated.
+- **End of Phase 5:** Usable CLI, comprehensive tests, full documentation, packaged application.
 
-3. **Metadata Schema Mapping**
-   - Create schema translation layer
-   - Implement schema validation
-   - Build schema extension mechanism
-   - Design custom attribute support
-   - Create schema documentation generator
-
-4. **Cross-Reference Resolution**
-   - Implement entity cross-referencing across chunks
-   - Build field reference resolution
-   - Create import/dependency resolution
-   - Design namespace management
-   - Implement reference confidence scoring
-
-### Phase 4: Evaluation & Optimization
-
-1. **Parser Evaluation Framework**
-   - Design test suite for parser accuracy
-   - Implement benchmark datasets
-   - Create evaluation metrics
-   - Build comparison against baseline
-   - Implement confidence scoring system
-
-2. **Prompt Template Optimization**
-   - Analyze prompt effectiveness
-   - Implement template variant testing
-   - Create template parameter tuning
-   - Design prompt chaining optimization
-   - Build progressive refinement system
-
-3. **Performance Optimization**
-   - Implement caching strategies
-   - Create batch processing optimization
-   - Design parallel processing options
-   - Build resource usage monitoring
-   - Implement throttling and rate limiting
-
-4. **Error Handling Refinement**
-   - Create comprehensive error classification
-   - Implement targeted retry strategies
-   - Design fallback mechanisms
-   - Build error reporting system
-   - Create self-healing capabilities
-
-## Integration with Broader System
-
-1. **Integration with Metadata Extraction System**
-   - Connect parser with entity/field extraction pipeline
-   - Implement metadata storage integration
-   - Create graph building from parser results
-   - Design incremental update mechanism
-   - Build extraction report generation
-
-2. **Integration with Vector Storage**
-   - Implement chunking to vector storage pipeline
-   - Create embedding generation for chunks
-   - Design similarity search integration
-   - Build context retrieval system
-   - Implement vector index optimization
-
-3. **Integration with Focused Scan**
-   - Connect parser with target selection system
-   - Implement focused extraction logic
-   - Create context window determination
-   - Design gap detection integration
-   - Build focused report generation
-
-4. **Integration with Data Lineage**
-   - Implement lineage extraction from parser results
-   - Create transformation logic detection
-   - Design lineage graph building
-   - Build lineage visualization integration
-   - Implement lineage query system
-
-## Implementation Timeline
-
-| Phase | Component | Estimated Duration |
-|-------|-----------|-------------------|
-| 1 | Parser Interface & Core Design | 2-3 weeks |
-| 2 | Python Parser Implementation | 3-4 weeks |
-| 3 | Metadata Extraction Integration | 3-4 weeks |
-| 4 | Evaluation & Optimization | 2-3 weeks |
-| - | Integration with Broader System | Concurrent with other phases |
-
-## Critical Path Dependencies
-
-1. LLM provider selection and integration must be completed before parser implementation
-2. Prompt template design must be completed before Python parser implementation
-3. Code chunking system must be implemented before metadata extraction integration
-4. Symbol map generation is required for focused scan integration
-5. Parser evaluation framework is needed for overall system accuracy assessment
-
-## Risk Mitigation
-
-1. **LLM Quality/Response Variation**
-   - Implement robust validation and error correction
-   - Create fallback strategies using simpler prompts
-   - Design confidence scoring to flag uncertain results
-
-2. **Performance/Cost Concerns**
-   - Implement aggressive caching
-   - Create batch processing to minimize API calls
-   - Design tiered approach balancing static and LLM methods
-
-3. **Context Window Limitations**
-   - Optimize chunking strategy
-   - Implement context preservation across chunks
-   - Create reference resolution between chunks
-
-4. **Language Support Challenges**
-   - Begin with Python as reference implementation
-   - Design language-agnostic interfaces
-   - Create clear extension points for additional languages 
+## Assumptions & Risks:
+- **LLM Access & Performance:** Assumes reliable access to a capable LLM API. Performance/latency of LLM calls can be a bottleneck (Mitigation: caching, batching, efficient prompting).
+- **Prompt Engineering Complexity:** Crafting effective prompts for diverse tasks will require iteration (Mitigation: dedicated prompt engineering effort, versioning, evaluation framework).
+- **Data Variety:** Handling diverse coding languages, documentation formats, and project structures (Mitigation: start focused, design for extensibility).
+- **Scalability:** Processing large repositories may pose challenges (Mitigation: optimize critical paths, consider distributed processing for some tasks if necessary later).
+- **Accuracy of Extraction:** LLM-based extraction may not be 100% accurate (Mitigation: confidence scoring, iterative refinement, human review flags for low-confidence items). 

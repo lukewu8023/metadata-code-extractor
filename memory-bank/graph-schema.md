@@ -145,6 +145,49 @@ Represents a code repository.
 - `version` (string): Version identifier (e.g., commit hash, tag)
 - `scanTime` (timestamp): When the repository was scanned
 
+### Document
+
+Represents a documentation file or resource.
+
+**Properties:**
+- `path` (string): Path to the document relative to repository root
+- `type` (string): Document type (e.g., "markdown", "pdf", "html", "javadoc")
+- `title` (string): Document title
+- `description` (string): Brief description of document content
+- `lastModified` (timestamp): Last modification timestamp
+- `tags` (json array): Content tags for categorization
+- `scanTime` (timestamp): When the document was scanned
+
+### DocumentChunk
+
+Represents a segment of a document for vector storage and retrieval.
+
+**Properties:**
+- `documentPath` (string): Path to the parent document
+- `content` (string): The actual text content of the chunk
+- `startPosition` (integer): Start position in the document (e.g., line number, character offset)
+- `endPosition` (integer): End position in the document
+- `summary` (string): AI-generated summary of the chunk
+- `tags` (json array): Content tags for the chunk
+- `confidence` (float): Confidence score for the extraction/relevance (0.0-1.0)
+
+### MetadataGap
+
+Represents a missing or incomplete piece of metadata identified by the system.
+
+**Properties:**
+- `gapId` (string): Unique identifier for the gap
+- `type` (string): Type of gap (e.g., "missing_field_description", "incomplete_relationship", "unknown_entity_type", "missing_documentation_link")
+- `entityName` (string): Name of the primary DataEntity associated with the gap (if applicable)
+- `fieldName` (string): Name of the Field associated with the gap (if applicable)
+- `description` (string): Detailed description of the missing information
+- `priority` (integer): Priority level for resolution (e.g., 1-High, 2-Medium, 3-Low)
+- `status` (string): Current status (e.g., "open", "in_progress_semantic", "in_progress_targeted_code", "in_progress_targeted_doc", "resolved", "requires_human_input", "failed")
+- `attemptCount` (integer): Number of automated resolution attempts made
+- `lastAttempt` (timestamp): Timestamp of the last resolution attempt
+- `resolutionNotes` (string): Notes about resolution attempts or guidance for human intervention
+- `suggestedActions` (json array): List of suggested actions (e.g., query VectorDB, scan specific file)
+
 ## Relationship Types
 
 ### CONTAINS
@@ -201,6 +244,63 @@ Represents a code repository.
 - **Properties:**
   - `derivationType` (string): How the entity is derived (e.g., "copy", "subset", "transformation")
   - `confidence` (float): Confidence score for the relationship (0.0-1.0)
+
+### DOCUMENTS
+- **From:** Document
+- **To:** DataEntity
+- **Description:** Links a document to a data entity it describes or references.
+- **Properties:**
+  - `documentationType` (string): Type of documentation (e.g., "reference_material", "user_guide", "api_spec", "data_dictionary_entry")
+  - `confidence` (float): Confidence score for the relationship (0.0-1.0)
+
+### CONTAINS_CHUNK
+- **From:** Document
+- **To:** DocumentChunk
+- **Description:** Links a document to its constituent chunks.
+- **Properties:**
+  - `position` (integer): Order or position of the chunk within the document sequence.
+
+### REFERENCES_CODE_ENTITY
+- **From:** DocumentChunk
+- **To:** DataEntity
+- **Description:** Links a document chunk to a specific code entity it discusses or exemplifies.
+- **Properties:**
+  - `referenceType` (string): Type of reference (e.g., "mentions", "explains_details", "provides_example_for")
+  - `confidence` (float): Confidence score for the relationship (0.0-1.0)
+
+### REFERENCES_FIELD
+- **From:** DocumentChunk
+- **To:** Field
+- **Description:** Links a document chunk to a specific field it discusses.
+- **Properties:**
+  - `referenceType` (string): Type of reference (e.g., "defines", "explains_usage", "constraints")
+  - `confidence` (float): Confidence score for the relationship (0.0-1.0)
+
+### HAS_GAP
+- **From:** DataEntity or Field or Document (or even Repository for global gaps)
+- **To:** MetadataGap
+- **Description:** Links an element to a metadata gap identified for it.
+- **Properties:**
+  - `identifiedAt` (timestamp): When the gap was first identified.
+  - `gapSeverity` (string): Estimated severity of the gap (e.g., "critical", "major", "minor").
+
+### RESOLVED_BY_CODE
+- **From:** MetadataGap
+- **To:** DataEntity or Field (or other relevant code-derived node)
+- **Description:** Indicates a gap was resolved by information extracted from code.
+- **Properties:**
+  - `resolutionTimestamp` (timestamp): When the gap was resolved.
+  - `resolutionMethod` (string): How it was resolved (e.g., "targeted_code_scan", "agent_inference_from_code").
+  - `confidence` (float): Confidence in the resolution.
+
+### RESOLVED_BY_DOCUMENT
+- **From:** MetadataGap
+- **To:** DocumentChunk (or Document)
+- **Description:** Indicates a gap was resolved by information from a document.
+- **Properties:**
+  - `resolutionTimestamp` (timestamp): When the gap was resolved.
+  - `resolutionMethod` (string): How it was resolved (e.g., "semantic_search_doc", "targeted_doc_scan").
+  - `confidence` (float): Confidence in the resolution.
 
 ## Query Examples
 
