@@ -197,7 +197,7 @@ Focus: Establish the foundational elements of the project.
 2.  **LLM Integration Framework (as per `llm-integration-design.md`):**
     *   [x] Develop `LLMClient` interface (`core/llm/client.py`).
     *   [x] Implement `LLMProviderAdapter` interface and abstract base class.
-    *   [ ] Implement concrete adapter (e.g., `OpenAIAdapter`, `MockAdapter`).
+    *   [x] Implement concrete adapter (e.g., `OpenAIAdapter`, `MockAdapter`).
     *   [ ] Basic `PromptManager` for loading and filling templates from files (`core/prompts/manager.py`).
     *   [ ] Initial `LLMCache` (e.g., in-memory or simple file-based).
     *   [x] Define `ChatMessage`, `ModelConfig`, `EmbeddingConfig` Pydantic models (`core/models/llm_models.py`).
