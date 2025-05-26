@@ -167,17 +167,17 @@ The project will be implemented in five phases, as detailed in `implementation-p
 Focus: Establish the foundational elements of the project.
 
 1.  **Project Setup & Environment:**
-    *   [ ] Initialize Python project structure (`metadata_code_extractor/` with subdirs: `core`, `agents`, `scanners`, `evaluators`, `db`, `prompts`, `utils`, `tests`, `cli`).
-    *   [ ] Set up dependency management (e.g., `pyproject.toml` with Poetry or PDM, and `requirements.txt` for broader compatibility if needed).
-    *   [ ] Design and implement configuration management system (as per `configuration-management-design.md`).
-        *   [ ] Implement `ConfigLoader` for YAML/env vars.
-        *   [ ] Define `AppConfig` and related Pydantic models (`core/config.py`, `core/models/config_models.py`).
-    *   [ ] Design and implement logging framework (as per `logging-design.md`).
-        *   [ ] Implement `setup_logging` function.
-        *   [ ] Define standard log formatters.
-    *   [ ] Set up testing infrastructure (`pytest` with basic structure, as per `testing-strategy.md`).
-        *   [ ] Create `tests/` directory structure.
-        *   [ ] Configure `pytest.ini` or `pyproject.toml` for pytest.
+    *   [x] Initialize Python project structure (`metadata_code_extractor/` with subdirs: `core`, `agents`, `scanners`, `evaluators`, `db`, `prompts`, `utils`, `tests`, `cli`).
+    *   [x] Set up dependency management (e.g., `pyproject.toml` with Poetry or PDM, and `requirements.txt` for broader compatibility if needed).
+    *   [x] Design and implement configuration management system (as per `configuration-management-design.md`).
+        *   [x] Implement `ConfigLoader` for YAML/env vars.
+        *   [x] Define `AppConfig` and related Pydantic models (`core/config.py`, `core/models/config_models.py`).
+    *   [x] Design and implement logging framework (as per `logging-design.md`).
+        *   [x] Implement `setup_logging` function.
+        *   [x] Define standard log formatters.
+    *   [x] Set up testing infrastructure (`pytest` with basic structure, as per `testing-strategy.md`).
+        *   [x] Create `tests/` directory structure.
+        *   [x] Configure `pytest.ini` or `pyproject.toml` for pytest.
 2.  **LLM Integration Framework (as per `llm-integration-design.md`):**
     *   [ ] Develop `LLMClient` interface (`core/llm/client.py`).
     *   [ ] Implement `LLMProviderAdapter` interface and at least one concrete adapter (e.g., `OpenAIAdapter`, `MockAdapter`).

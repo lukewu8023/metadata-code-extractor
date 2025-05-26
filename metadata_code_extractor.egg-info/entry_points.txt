@@ -1,0 +1,2 @@
+[console_scripts]
+mce = metadata_code_extractor.cli:main
