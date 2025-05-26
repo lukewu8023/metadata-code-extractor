@@ -1,3 +1,17 @@
+## NOTE: Potentially Conflicting / Partially Superseded Document
+
+**This document (`metadata_schema.md`) outlines an early, broad conceptual schema. While some entity type names overlap with the primary graph schema, the detailed attributes, relationships, and particularly the "Supporting Entity Types" and "Example JSON Output" may differ from the more focused and current schema defined in `memory-bank/graph-schema.md`.**
+
+**The primary reference for the graph database structure to be implemented should be `memory-bank/graph-schema.md`.**
+
+This document (`metadata_schema.md`) can be used for:
+*   Historical context on schema brainstorming.
+*   Ideas for potential future extensions if the system incorporates more traditional static analysis outputs.
+
+However, for the current agent-driven, LLM-centric implementation, direct reliance on all details herein might lead to inconsistencies with `graph-schema.md` and the Pydantic models in `core-data-models.md` which are designed to map to `graph-schema.md`.
+
+---
+
 # Metadata Schema - Code Extractor
 
 ## Primary Entity Types

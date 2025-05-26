@@ -1,126 +1,151 @@
 # Metadata Code Extractor - Implementation Plan (Agent-Driven Orchestration)
 
 ## Project Goal
-To develop an intelligent metadata extraction system that uses an LLM Orchestrator Agent to scan code and documentation, identify metadata gaps, and iteratively fill those gaps using a combination of semantic search and targeted scanning.
+To develop an intelligent metadata extraction system that uses an LLM Orchestrator Agent to scan code and documentation, identify metadata gaps, and iteratively fill those gaps using a combination of semantic search and targeted scanning. This plan reflects the validated technology stack.
+
+## Validated Technology Stack
+
+### Core Technologies (Validated ✅)
+-   **LLM Provider:** OpenRouter API (multi-model access)
+    *   Primary Model: `openai/gpt-4o-mini` (validated working, e.g., `llm_poc.py`)
+    *   Production Model Options: `openai/gpt-4`, `anthropic/claude-3-sonnet`
+    *   Client: `openai` library (OpenRouter compatible, version as per `run_validation.sh`)
+-   **Graph Database:** Neo4j (target v4.4.44, validated with v4.4.12 driver)
+    *   Driver: `neo4j==4.4.12` (as per `run_validation.sh` and `graph_db_poc.py`)
+    *   Connection: Via URI, User, Password (validated in `graph_db_poc.py`)
+-   **Vector Database:** Weaviate (target v1.24.20, validated with client v3.24.2)
+    *   Client: `weaviate-client==3.24.2` (as per `run_validation.sh` and `vector_db_poc.py`)
+    *   Connection: Via URL, optional API Key (validated in `vector_db_poc.py`)
+-   **Configuration:** Pydantic, python-dotenv (validated in `config_poc.py`)
+-   **Python Environment:** Python 3.9+ (validation scripts use system Python, assumed to be compatible)
 
 ## Implementation Phases
 
-### Phase 1: Core Framework and Infrastructure (3-4 Weeks)
-Focus: Establish the foundational elements of the project.
+### Phase 1: Core Framework and Infrastructure (Estimate: 3-4 Weeks)
+**Objective:** Establish foundational elements using the validated technology stack.
 
-1.  **Project Setup & Environment:**
-    *   Initialize Python project structure (`metadata_code_extractor/` with subdirs: `core`, `agents`, `scanners`, `evaluators`, `db_integrations`, `prompts`, `utils`, `tests`, `cli`).
-    *   Set up dependency management (e.g., `requirements.txt` or `pyproject.toml` with Poetry/PDM).
-    *   Implement configuration management (e.g., Pydantic settings, `.env` files).
-    *   Establish logging framework (e.g., `logging` module configured for console/file output).
-    *   Set up testing infrastructure (e.g., `pytest` with basic test structure).
-2.  **LLM Integration Framework:**
-    *   Develop a generic LLM client interface (supporting chat, completions, embeddings).
-    *   Implement adapter for at least one LLM provider (e.g., OpenAI, Anthropic).
-    *   Basic prompt templating/management system.
-    *   Initial caching mechanism for LLM responses.
-3.  **Database Interface Definitions:**
-    *   Define abstract interfaces for Graph DB interaction (CRUD operations for nodes/relationships based on `graph-schema.md`).
-    *   Define abstract interfaces for Vector DB interaction (add embeddings, semantic search).
-4.  **Basic Data Models:**
-    *   Implement Pydantic models for core concepts (e.g., `CodeFile`, `DocumentFile`, `MetadataElement`, `Gap`).
+1.  **Project Structure Setup (as per `project-structure.md`):**
+    *   Initialize Python project directory (`metadata_code_extractor/` with subdirectories: `core`, `agents`, `scanners`, `evaluators`, `llm_integrations`, `db_integrations`, `prompts`, `utils`, `tests`, `cli`).
+    *   Set up dependency management (e.g., `pyproject.toml` or `requirements.txt` with validated versions: `python-dotenv`, `pydantic`, `requests`, `openai` (for OpenRouter), `neo4j==4.4.12`, `weaviate-client==3.24.2`).
+2.  **Configuration Management System (based on `configuration-management-design.md` and `config_poc.py`):**
+    *   Implement `core/config.py` using Pydantic models (`core/models/config_models.py`).
+    *   Load from `.env` files and environment variables.
+    *   Validate configuration on startup.
+3.  **Logging Framework (based on `logging-design.md`):**
+    *   Implement `core/logging_setup.py` using Python's `logging` module.
+    *   Configurable log levels, formats, and outputs (console, file).
+4.  **Testing Infrastructure (based on `testing-strategy.md`):**
+    *   Set up `pytest` with initial directory structure (`tests/unit`, `tests/integration`).
+    *   Create `conftest.py` for common fixtures.
+5.  **LLM Integration Framework (based on `llm-integration-design.md` and `llm_poc.py`):**
+    *   Define `LLMClient` interface in `metadata_code_extractor/llm_integrations/llm_client.py`.
+    *   Implement `OpenRouterAdapter` in `metadata_code_extractor/llm_integrations/providers/openrouter_adapter.py` using the `openai` library.
+    *   Implement basic `PromptManager` in `metadata_code_extractor/llm_integrations/prompt_manager.py` (loading from `prompts/` directory).
+    *   Implement initial `LLMCache` in `metadata_code_extractor/llm_integrations/llm_cache.py` (e.g., in-memory or simple file-based).
+6.  **Database Interface Definitions and Adapters (based on `database-integration-design.md` and PoCs):**
+    *   Define `GraphDBInterface` in `metadata_code_extractor/db_integrations/graph_db_interface.py`.
+    *   Implement `Neo4jAdapter` in `metadata_code_extractor/db_integrations/graph_db/neo4j_adapter.py` (using `neo4j==4.4.12` driver).
+    *   Define `VectorDBInterface` in `metadata_code_extractor/db_integrations/vector_db_interface.py`.
+    *   Implement `WeaviateAdapter` in `metadata_code_extractor/db_integrations/vector_db/weaviate_adapter.py` (using `weaviate-client==3.24.2`).
+    *   Include fallback embedding generation logic from `vector_db_poc.py` if OpenRouter embedding models are not immediately used/available.
+7.  **Core Data Models (based on `core-data-models.md`):**
+    *   Implement Pydantic models in `core/models/` for configuration, LLM interactions, DB items, and extraction outputs (e.g., `ExtractedDataEntity`, `MetadataGapInfo`).
+8.  **Basic CLI Structure (based on `project-structure.md`):**
+    *   Implement `cli.py` using a library like `click` or `argparse` with placeholder commands.
 
-### Phase 2: Core Components Development (4-6 Weeks)
-Focus: Develop the primary processing components.
+### Phase 2: Core Components Development (Estimate: 4-6 Weeks)
+**Objective:** Develop the primary processing components.
 
-1.  **Code Metadata Scanner (Initial Version):**
-    *   Implement basic file traversal for code repositories.
-    *   Develop LLM-based extraction for primary code entities and fields (e.g., classes, functions, attributes in Python).
-    *   Prompts for extracting basic structured metadata from code snippets.
-    *   Functionality to generate embeddings for code snippets/comments.
-    *   Integration with Graph DB and Vector DB interfaces for storing results.
-    *   Develop `scan_code_repository(path)` and `scan_code_file_targeted(file_path, targets)` functions.
-2.  **Document Scanner (Initial Version):**
-    *   Implement basic file traversal for document directories.
-    *   Support for parsing at least one document type (e.g., Markdown).
-    *   LLM-based extraction for identifying document structure (headings, sections) and potential links to code entities (heuristic-based or simple LLM prompts).
-    *   Document chunking strategy (e.g., by section or fixed size with overlap).
-    *   Functionality to generate embeddings for document chunks.
-    *   Integration with Graph DB and Vector DB interfaces.
-    *   Develop `scan_document_repository(path)` and `scan_document_file_targeted(file_path, targets)` functions.
-3.  **Graph DB Implementation (Initial):**
-    *   Implement the Graph DB interface for a chosen provider (e.g., Neo4j connector, or a simpler local alternative like SQLite with JSON for early dev).
-    *   Functions to add/update nodes and relationships as per `graph-schema.md` (DataEntity, Field, Document, DocumentChunk initially).
-4.  **Vector DB Implementation (Initial):**
-    *   Implement the Vector DB interface for a chosen provider (e.g., FAISS, ChromaDB, Pinecone client).
-    *   Functions to add embeddings and perform similarity searches.
+1.  **Code Metadata Scanner (Initial Version - based on `code-scanner-design.md`):**
+    *   Implement `scanners/base_scanner.py` with a base scanner interface.
+    *   Implement `scanners/code_scanner.py`.
+    *   Basic file traversal and language identification (Python initially).
+    *   LLM-based extraction for primary code entities (classes, functions) and their fields/attributes.
+    *   Prompts for structured metadata (JSON) from code snippets.
+    *   Integration with `LLMClient` and `EmbeddingGenerator` (from LLM Integration framework).
+    *   Integration with `GraphDBInterface` and `VectorDBInterface` for storing results.
+    *   Implement `scan_repository(repo_path)` and `scan_targeted(file_path, target_details)`.
+2.  **Document Scanner (Initial Version - based on `document-scanner-design.md`):**
+    *   Implement `scanners/document_scanner.py`.
+    *   Support for parsing Markdown files initially.
+    *   Document chunking strategy.
+    *   LLM-based extraction for document structure and summaries.
+    *   Heuristic or simple LLM prompts for identifying links to code entities.
+    *   Integration with `LLMClient` and `EmbeddingGenerator`.
+    *   Integration with `GraphDBInterface` and `VectorDBInterface`.
+    *   Implement `scan_document_repository(source_path_or_url_list)` and `scan_document_targeted(doc_identifier, target_details)`.
 
-### Phase 3: Agent and Orchestration System (5-7 Weeks)
-Focus: Develop the intelligent core of the system.
+### Phase 3: Agent and Orchestration System (Estimate: 5-7 Weeks)
+**Objective:** Develop the intelligent core of the system.
 
-1.  **LLM Orchestrator Agent (Core Logic):**
-    *   Implement agent state management.
-    *   Develop ReAct (Reason-Act) loop framework.
-    *   Prompts for agent reasoning: analyzing current state, deciding next actions (e.g., "Should I do a broad scan?", "Which gap to prioritize?", "How to resolve this gap?").
-    *   Ability to invoke Code Scanner, Document Scanner, and Completeness Evaluator.
+1.  **LLM Orchestrator Agent (Core Logic - based on `llm-orchestrator-agent-design.md`):**
+    *   Implement `agents/llm_orchestrator_agent.py`.
+    *   Agent state management.
+    *   ReAct (Reason-Act) loop framework.
+    *   Prompts for agent reasoning (analyzing state, deciding next actions).
+    *   Ability to invoke Scanners and Evaluator.
     *   Initial strategies for choosing between semantic search and targeted scanning.
-2.  **Completeness Evaluator (Initial Version):**
-    *   Define initial completeness criteria (e.g., "DataEntity has description?", "Field has type?").
-    *   Logic to query Graph DB and identify items failing criteria, creating `MetadataGap` nodes.
-    *   Prompts for summarizing and prioritizing gaps.
-    *   Develop `evaluate_completeness()` and `get_gaps()` functions.
+2.  **Completeness Evaluator (Initial Version - based on `completeness-evaluator-design.md`):**
+    *   Implement `evaluators/completeness_evaluator.py`.
+    *   Define initial completeness criteria (e.g., entity description exists, field type defined).
+    *   Logic to query `GraphDBInterface` and identify items failing criteria.
+    *   Functionality to create/update `MetadataGap` nodes in the Graph DB.
+    *   Prompts for summarizing and prioritizing gaps (if LLM-assisted).
+    *   Implement `evaluate_completeness()` and `get_open_gaps()`.
 3.  **Orchestration Workflow (Initial):**
-    *   Implement the main sequence: Initial Code Scan -> Initial Doc Scan -> Initial Evaluation -> Basic Gap Loop (semantic search only for first iteration).
-    *   Store `MetadataGap` nodes in Graph DB.
+    *   Implement the main sequence: Initial Code Scan -> Initial Doc Scan -> Initial Evaluation -> Basic Gap Loop (semantic search for first iteration).
 
-### Phase 4: Integration, Iterative Improvement & Advanced Features (6-8 Weeks)
-Focus: Refine components, enable the full iterative loop, and add advanced capabilities.
+### Phase 4: Integration, Iterative Improvement & Advanced Features (Estimate: 6-8 Weeks)
+**Objective:** Refine components, enable the full iterative loop, and add advanced capabilities.
 
 1.  **Full Gap Resolution Loop:**
-    *   Enhance Agent's ability to choose and execute targeted scans (Code and Document) based on gap type and context.
-    *   Agent's ability to process results from semantic search and targeted scans to update Graph DB (potentially creating/updating entities/fields or linking documents).
-    *   Refined re-evaluation by Completeness Evaluator after each attempt.
-    *   Logic for the Agent to decide if a gap is resolved, needs more attempts, or requires human input.
+    *   Enhance Agent's ability to choose and execute targeted scans based on gap type and context.
+    *   Agent processes results from semantic search and targeted scans to update Graph DB.
+    *   Refined re-evaluation by Completeness Evaluator.
+    *   Agent logic to decide if a gap is resolved, needs more attempts, or requires human input.
 2.  **Advanced Scanning & Extraction:**
-    *   Code Scanner: Deeper analysis (e.g., relationships like `REFERENCES`, `TRANSFORMED_FROM`), more languages.
-    *   Document Scanner: Support for more formats (PDF), more sophisticated extraction of relationships between document parts and code entities (`REFERENCES_CODE_ENTITY`, `DESCRIBES`).
+    *   Code Scanner: Deeper analysis (relationships like `REFERENCES`, `TRANSFORMED_FROM`), support for more languages.
+    *   Document Scanner: Support for more formats (e.g., PDF via PyMuPDF, HTML via BeautifulSoup), more sophisticated extraction of relationships.
 3.  **Enhanced Completeness Evaluator:**
     *   More sophisticated completeness rules and heuristics.
-    *   Better prioritization of gaps.
+    *   Improved prioritization of gaps.
 4.  **Refined Agent Reasoning:**
-    *   Improved prompts for more nuanced decision-making and error handling.
-    *   Ability to learn from failed attempts (e.g., not retrying the same strategy on a persistent gap).
+    *   Improved prompts for nuanced decision-making and error handling.
+    *   Ability to learn from failed attempts.
 5.  **Performance & Scalability:**
-    *   Implement caching strategies effectively.
-    *   Optimize DB queries and LLM calls (batching where possible).
+    *   Optimize DB queries and LLM calls (batching).
+    *   Refine caching.
 
-### Phase 5: CLI, Testing, and Documentation (4-5 Weeks)
-Focus: Make the system usable, robust, and well-documented.
+### Phase 5: CLI, Testing, and Documentation (Estimate: 4-5 Weeks)
+**Objective:** Make the system usable, robust, and well-documented.
 
 1.  **Command Line Interface (CLI):**
-    *   Develop CLI using a library like `click` or `argparse`.
-    *   Commands to initiate full scan, report on progress, query specific metadata.
-    *   Configuration options (paths, API keys, DB settings).
+    *   Full implementation of CLI commands defined in `project-structure.md`.
+    *   Progress reporting, configuration options.
 2.  **Comprehensive Testing:**
-    *   Unit tests for all core components and utilities.
-    *   Integration tests for interactions between Agent, Scanners, Evaluator, and DBs.
+    *   Expand unit tests for all components.
+    *   Develop integration tests for interactions (Agent-Scanner, Agent-Evaluator, Scanner-DB).
     *   End-to-end tests with sample code/doc repositories.
-    *   Develop a small, representative test dataset.
 3.  **User and Developer Documentation:**
-    *   User guide: How to install, configure, and run the extractor; understanding outputs.
-    *   Developer guide: Architecture overview, how to extend with new scanners/rules, API documentation for core modules.
-    *   Documentation for `graph-schema.md` and prompt templates.
+    *   User guide (install, configure, run, understand outputs).
+    *   Developer guide (architecture, extending scanners/rules, API docs).
+    *   Documentation for `graph-schema.md` and prompt templates (`prompt-engineering.md`).
 4.  **Packaging & Deployment Considerations:**
-    *   Package the application for distribution (e.g., PyPI).
-    *   (Optional) Dockerfile for containerized deployment.
+    *   Package for distribution (e.g., PyPI).
+    *   (Optional) Dockerfile.
 
 ## Total Estimated Timeline: 22-30 Weeks
 
 ## Key Milestones & Deliverables:
-- **End of Phase 1:** Core framework setup, basic LLM/DB interfaces.
-- **End of Phase 2:** Initial versions of Code and Document Scanners, basic DB implementations working.
-- **End of Phase 3:** Orchestrator Agent can run initial scans, evaluate completeness, and attempt semantic search for gaps.
-- **End of Phase 4:** Full iterative gap resolution loop functional; advanced scanning capabilities integrated.
-- **End of Phase 5:** Usable CLI, comprehensive tests, full documentation, packaged application.
+-   **End of Phase 1:** Core framework setup, basic LLM/DB interfaces and adapters implemented and unit-tested.
+-   **End of Phase 2:** Initial versions of Code and Document Scanners functional, storing basic data in DBs.
+-   **End of Phase 3:** Orchestrator Agent can run initial scans, evaluate completeness, and attempt semantic search for gaps.
+-   **End of Phase 4:** Full iterative gap resolution loop functional; advanced scanning capabilities integrated.
+-   **End of Phase 5:** Usable CLI, comprehensive tests, full documentation, packaged application.
 
 ## Assumptions & Risks:
-- **LLM Access & Performance:** Assumes reliable access to a capable LLM API. Performance/latency of LLM calls can be a bottleneck (Mitigation: caching, batching, efficient prompting).
-- **Prompt Engineering Complexity:** Crafting effective prompts for diverse tasks will require iteration (Mitigation: dedicated prompt engineering effort, versioning, evaluation framework).
-- **Data Variety:** Handling diverse coding languages, documentation formats, and project structures (Mitigation: start focused, design for extensibility).
-- **Scalability:** Processing large repositories may pose challenges (Mitigation: optimize critical paths, consider distributed processing for some tasks if necessary later).
-- **Accuracy of Extraction:** LLM-based extraction may not be 100% accurate (Mitigation: confidence scoring, iterative refinement, human review flags for low-confidence items). 
+-   **LLM Access & Performance:** Assumes reliable access to OpenRouter. Latency can be a bottleneck. (Mitigation: effective caching, batching, efficient prompting, potential model tier selection).
+-   **Prompt Engineering Complexity:** Crafting effective prompts is iterative. (Mitigation: use `prompt-engineering.md` guidelines, version prompts, evaluate).
+-   **Data Variety:** Handling diverse languages, doc formats, project structures. (Mitigation: start focused, design for extensibility).
+-   **Scalability:** Large repositories may pose challenges. (Mitigation: optimize critical paths, efficient DB usage).
+-   **Accuracy of Extraction:** LLM extraction may not be 100% accurate. (Mitigation: confidence scoring, iterative refinement, human review flags). 

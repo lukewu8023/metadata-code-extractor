@@ -56,19 +56,19 @@
 - None (Technology Validation completed successfully)
 
 ## Next Development Steps (Phase 1 Implementation)
-1.  **Project Setup & Environment (as per Phase 1 in `tasks.md`):**
-    *   Initialize Python project structure (`metadata_code_extractor/` and subdirectories).
-    *   Set up dependency management (e.g., `pyproject.toml` with chosen libraries).
-2.  **Implement core configuration management system** (as per `configuration-management-design.md`).
+1.  **Project Setup & Environment (as per Phase 1 in `detailed-implementation-plan.md` and `tasks.md`):**
+    *   Initialize Python project structure (`metadata_code_extractor/` and subdirectories as defined in `project-structure.md`).
+    *   Set up dependency management (e.g., `pyproject.toml` with validated libraries: `python-dotenv`, `pydantic`, `requests`, `openai` (for OpenRouter), `neo4j==4.4.12`, `weaviate-client==3.24.2`).
+2.  **Implement core configuration management system** (as per `configuration-management-design.md` and validated `config_poc.py`).
 3.  **Establish the logging framework** (as per `logging-design.md`).
 4.  **Set up the testing infrastructure** (`pytest`, initial structure as per `testing-strategy.md`).
-5.  **Develop LLM Integration Framework (as per `llm-integration-design.md`):**
+5.  **Develop LLM Integration Framework (as per `llm-integration-design.md` and validated `llm_poc.py`):**
     *   Implement `LLMClient` interface.
-    *   Implement `LLMProviderAdapter` for the chosen LLM provider.
-    *   Implement basic `PromptManager`.
+    *   Implement `LLMProviderAdapter` for OpenRouter.
+    *   Implement basic `PromptManager` (loading from `prompts/` directory).
     *   Implement initial `LLMCache`.
-6.  **Implement Database Interface Definitions (as per `database-integration-design.md`):**
-    *   Implement `GraphDBInterface` adapter for the chosen Graph DB.
-    *   Implement `VectorDBInterface` adapter for the chosen Vector DB.
+6.  **Implement Database Interface Definitions and Adapters (as per `database-integration-design.md` and validated PoCs):**
+    *   Implement `GraphDBInterface` adapter for Neo4j (`neo4j_adapter.py`).
+    *   Implement `VectorDBInterface` adapter for Weaviate (`weaviate_adapter.py`).
 7.  **Implement Core Data Models (as per `core-data-models.md` and `tasks.md` Phase 1).**
-8.  **Implement Basic CLI Structure (as per `tasks.md` Phase 1).** 
+8.  **Implement Basic CLI Structure (as per `project-structure.md` and `tasks.md` Phase 1).** 

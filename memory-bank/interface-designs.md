@@ -1,3 +1,16 @@
+## NOTE: Partially Superseded Document
+
+**This document (`interface-designs.md`) outlines some earlier, more generic interface ideas. While some conceptual aspects might still be relevant, many of these interfaces have been refined and detailed within the specific component design documents:**
+
+*   `llm-integration-design.md` (for `LLMClient`, prompt management)
+*   `database-integration-design.md` (for `GraphDBInterface`, `VectorDBInterface`)
+*   `code-scanner-design.md` (for internal scanner interfaces like `LanguageParser`)
+*   `document-scanner-design.md` (for internal scanner interfaces like `FormatParser`)
+
+Please refer to those documents for the most current interface designs relevant to each component. This document can be used for historical context or general interface concepts.
+
+---
+
 # Metadata Code Extractor - Interface Designs
 
 ## Core Interface Designs
