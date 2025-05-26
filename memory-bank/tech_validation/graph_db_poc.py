@@ -45,9 +45,10 @@ class GraphDBPOC:
         # Create constraints for our node types
         with self.driver.session() as session:
             try:
-                # Create constraints for unique IDs
+                # Create constraints for unique IDs (Community Edition compatible)
                 session.run("CREATE CONSTRAINT IF NOT EXISTS FOR (e:DataEntity) REQUIRE e.name IS UNIQUE")
-                session.run("CREATE CONSTRAINT IF NOT EXISTS FOR (f:Field) REQUIRE (f.name, f.entity_name) IS NODE KEY")
+                # Use a simpler constraint for Field nodes that works with Community Edition
+                session.run("CREATE CONSTRAINT IF NOT EXISTS FOR (f:Field) REQUIRE f.id IS UNIQUE")
                 
                 self.schema_success = True
                 print("✅ Schema created successfully")
@@ -75,7 +76,7 @@ class GraphDBPOC:
                 for field in fields:
                     session.run("""
                         MATCH (e:DataEntity {name: 'User'})
-                        MERGE (f:Field {name: $name, entity_name: 'User', type: $type, description: $description})
+                        MERGE (f:Field {id: $name + '_User', name: $name, entity_name: 'User', type: $type, description: $description})
                         MERGE (e)-[:HAS_FIELD]->(f)
                     """, field)
                     
