@@ -92,7 +92,7 @@ class LLMCacheEntry(BaseModel):
     request_hash: str
     response: Union[LLMResponse, EmbeddingResponse]
     timestamp: float
-    model_config: Union[ModelConfig, EmbeddingConfig]
+    config: Union[ModelConfig, EmbeddingConfig]
     
     class Config:
         """Pydantic configuration."""
