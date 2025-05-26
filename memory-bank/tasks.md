@@ -198,7 +198,7 @@ Focus: Establish the foundational elements of the project.
     *   [x] Develop `LLMClient` interface (`core/llm/client.py`).
     *   [x] Implement `LLMProviderAdapter` interface and abstract base class.
     *   [x] Implement concrete adapter (e.g., `OpenAIAdapter`, `MockAdapter`).
-    *   [ ] Basic `PromptManager` for loading and filling templates from files (`core/prompts/manager.py`).
+    *   [x] Basic `PromptManager` for loading and filling templates from files (`core/prompts/manager.py`).
     *   [ ] Initial `LLMCache` (e.g., in-memory or simple file-based).
     *   [x] Define `ChatMessage`, `ModelConfig`, `EmbeddingConfig` Pydantic models (`core/models/llm_models.py`).
 3.  **Database Interface Definitions (as per `database-integration-design.md`):**
