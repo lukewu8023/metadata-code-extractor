@@ -51,7 +51,7 @@ fi
 
 # Install required packages
 echo -e "\n${CYAN}Installing required packages...${NC}"
-pip install python-dotenv pydantic requests openai neo4j chromadb
+pip install python-dotenv pydantic requests openai neo4j==4.4.44 weaviate-client==3.24.2
 if [ $? -ne 0 ]; then
     echo -e "${RED}Error: Failed to install required packages${NC}"
     exit 1

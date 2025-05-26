@@ -17,24 +17,24 @@ load_dotenv()
 
 class LLMConfig(BaseModel):
     provider: str = Field(
-        default=os.getenv("LLM_PROVIDER", "openai"), 
+        default=os.getenv("LLM_PROVIDER", "openrouter"), 
         description="LLM provider to use"
     )
-    openai_api_key: str = Field(
-        default=os.getenv("OPENAI_API_KEY", ""), 
-        description="OpenAI API key"
+    openrouter_api_key: str = Field(
+        default=os.getenv("OPENROUTER_API_KEY", ""), 
+        description="OpenRouter API key"
     )
-    anthropic_api_key: str = Field(
-        default=os.getenv("ANTHROPIC_API_KEY", ""), 
-        description="Anthropic API key"
+    openrouter_model: str = Field(
+        default=os.getenv("OPENROUTER_MODEL", "openai/gpt-4"), 
+        description="OpenRouter model to use"
     )
-    openai_model: str = Field(
-        default=os.getenv("OPENAI_MODEL", "gpt-4"), 
-        description="OpenAI model to use"
+    openrouter_site_url: str = Field(
+        default=os.getenv("OPENROUTER_SITE_URL", "https://github.com/metadata-code-extractor"), 
+        description="OpenRouter site URL for referrer"
     )
-    anthropic_model: str = Field(
-        default=os.getenv("ANTHROPIC_MODEL", "claude-3-sonnet"), 
-        description="Anthropic model to use"
+    openrouter_app_name: str = Field(
+        default=os.getenv("OPENROUTER_APP_NAME", "metadata-code-extractor"), 
+        description="OpenRouter app name"
     )
 
 class DatabaseConfig(BaseModel):
@@ -43,7 +43,7 @@ class DatabaseConfig(BaseModel):
         description="Graph database provider"
     )
     vector_provider: str = Field(
-        default=os.getenv("VECTOR_DB_PROVIDER", "chroma"), 
+        default=os.getenv("VECTOR_DB_PROVIDER", "weaviate"), 
         description="Vector database provider"
     )
     neo4j_uri: str = Field(
@@ -58,9 +58,13 @@ class DatabaseConfig(BaseModel):
         default=os.getenv("NEO4J_PASSWORD", "password"), 
         description="Neo4j password"
     )
-    chromadb_persist_directory: str = Field(
-        default=os.getenv("CHROMADB_PERSIST_DIRECTORY", "./data/chromadb"), 
-        description="ChromaDB persistence directory"
+    weaviate_url: str = Field(
+        default=os.getenv("WEAVIATE_URL", "http://localhost:8080"), 
+        description="Weaviate connection URL"
+    )
+    weaviate_api_key: str = Field(
+        default=os.getenv("WEAVIATE_API_KEY", ""), 
+        description="Weaviate API key (optional for local instances)"
     )
 
 class ScanningConfig(BaseModel):
@@ -110,35 +114,30 @@ def run_poc():
         
         # Validate provider-specific configurations
         print("\nValidating LLM provider configuration...")
-        if config.llm.provider == "openai":
-            if not config.llm.openai_api_key:
-                print("❌ Warning: OpenAI API key is empty")
+        if config.llm.provider == "openrouter":
+            if not config.llm.openrouter_api_key:
+                print("❌ Warning: OpenRouter API key is empty")
                 success = False
             else:
-                print("✅ OpenAI API key is set")
+                print("✅ OpenRouter API key is set")
                 
-            if not config.llm.openai_model:
-                print("❌ Warning: OpenAI model is empty")
+            if not config.llm.openrouter_model:
+                print("❌ Warning: OpenRouter model is empty")
                 success = False
             else:
-                print(f"✅ OpenAI model is set: {config.llm.openai_model}")
+                print(f"✅ OpenRouter model is set: {config.llm.openrouter_model}")
                 
-            validation_results["llm_provider_validation"] = bool(config.llm.openai_api_key and config.llm.openai_model)
-                
-        elif config.llm.provider == "anthropic":
-            if not config.llm.anthropic_api_key:
-                print("❌ Warning: Anthropic API key is empty")
+            if not config.llm.openrouter_site_url:
+                print("❌ Warning: OpenRouter site URL is empty")
                 success = False
             else:
-                print("✅ Anthropic API key is set")
+                print(f"✅ OpenRouter site URL is set: {config.llm.openrouter_site_url}")
                 
-            if not config.llm.anthropic_model:
-                print("❌ Warning: Anthropic model is empty")
-                success = False
-            else:
-                print(f"✅ Anthropic model is set: {config.llm.anthropic_model}")
-                
-            validation_results["llm_provider_validation"] = bool(config.llm.anthropic_api_key and config.llm.anthropic_model)
+            validation_results["llm_provider_validation"] = bool(
+                config.llm.openrouter_api_key and 
+                config.llm.openrouter_model and 
+                config.llm.openrouter_site_url
+            )
         
         print("\nValidating database provider configuration...")
         if config.database.graph_provider == "neo4j":
@@ -166,12 +165,18 @@ def run_poc():
                 config.database.neo4j_password
             )
             
-        if config.database.vector_provider == "chroma":
-            if not config.database.chromadb_persist_directory:
-                print("❌ Warning: ChromaDB persistence directory is empty")
+        if config.database.vector_provider == "weaviate":
+            if not config.database.weaviate_url:
+                print("❌ Warning: Weaviate URL is empty")
                 success = False
             else:
-                print(f"✅ ChromaDB persistence directory is set: {config.database.chromadb_persist_directory}")
+                print(f"✅ Weaviate URL is set: {config.database.weaviate_url}")
+                
+            # API key is optional for local instances
+            if config.database.weaviate_api_key:
+                print("✅ Weaviate API key is set (for cloud instances)")
+            else:
+                print("ℹ️ Weaviate API key not set (assuming local instance)")
 
         # Test serialization
         print("\nTesting config serialization...")

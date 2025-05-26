@@ -36,9 +36,9 @@ The system comprises several newly developed, interconnected components:
 
 ## Dependencies
 *   **Python 3.9+ Environment.**
-*   **LLM Provider:** Access to a capable LLM API (e.g., OpenAI, Anthropic). Selection pending.
-*   **Graph Database:** A graph database system (e.g., Neo4j, Memgraph). Selection pending.
-*   **Vector Database:** A vector database system/library (e.g., ChromaDB, FAISS, Weaviate). Selection pending.
+*   **LLM Provider:** OpenRouter API for access to multiple LLM models (GPT-4, Claude-3, etc.). **SELECTED**
+*   **Graph Database:** Neo4j v4.4.44 (LTS) for storing structured metadata and relationships. **SELECTED**
+*   **Vector Database:** Weaviate v1.24.20 for storing embeddings and semantic search. **SELECTED**
 *   **Python Libraries:** As defined in `pyproject.toml`/`requirements.txt` (e.g., Pydantic, Click, HTTP clients).
 
 ## Potential Challenges & Mitigations
@@ -260,12 +260,20 @@ Focus: Make the system usable, robust, and well-documented.
 - [x] Created proof-of-concept scripts for LLM, GraphDB, VectorDB (`memory-bank/tech_validation/`)
 - [x] Created validation checklist and documentation (`memory-bank/tech_validation/validation_checklist.md`)
 
+### Technology Selections Finalized
+- [x] **LLM Provider:** OpenRouter API selected for multi-model access and cost optimization
+- [x] **Graph Database:** Neo4j v4.4.44 (LTS) selected for production-ready graph capabilities  
+- [x] **Vector Database:** Weaviate v1.24.20 selected for advanced vector search and metadata handling
+- [x] Updated all PoC scripts to reflect technology selections
+- [x] Updated configuration templates and validation scripts
+
 The tasks below are now part of the "Technology Validation Execution" phase:
-- [ ] Execute validation PoCs using `run_validation.sh` script
+- [ ] Execute validation PoCs using updated `run_validation.sh` script
 - [ ] Document validation results in the checklist
-- [ ] Finalize selection of specific LLM provider and model version
-- [ ] Finalize selection of specific Graph DB (e.g., Neo4j, Memgraph) and Vector DB (e.g., Chroma, FAISS, Weaviate)
-- [ ] Update project documentation with final technology choices
+- [ ] Verify OpenRouter API connectivity and model access
+- [ ] Verify Neo4j v4.4.44 installation and connectivity
+- [ ] Verify Weaviate v1.24.20 installation and schema creation
+- [ ] Complete validation checklist and proceed to Phase 1 implementation
 
 ## Notes
 - LLM prompts are critical; continuous refinement will be needed.

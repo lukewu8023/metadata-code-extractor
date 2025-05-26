@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# LLM Provider PoC for Metadata Code Extractor
+# LLM Provider PoC for Metadata Code Extractor - OpenRouter
 import os
 from dotenv import load_dotenv
 import requests
@@ -9,10 +9,12 @@ import sys
 # Load environment variables
 load_dotenv()
 
-# Configuration
-API_KEY = os.getenv("OPENAI_API_KEY")  # or ANTHROPIC_API_KEY
-API_ENDPOINT = "https://api.openai.com/v1/chat/completions"  # adjust for chosen provider
-MODEL = os.getenv("OPENAI_MODEL", "gpt-4")  # or chosen model
+# Configuration for OpenRouter
+API_KEY = os.getenv("OPENROUTER_API_KEY")
+API_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions"
+MODEL = os.getenv("OPENROUTER_MODEL", "openai/gpt-4")  # Default to GPT-4 via OpenRouter
+SITE_URL = os.getenv("OPENROUTER_SITE_URL", "https://github.com/metadata-code-extractor")
+APP_NAME = os.getenv("OPENROUTER_APP_NAME", "metadata-code-extractor")
 
 # Simple Python code to analyze
 sample_code = """
@@ -49,14 +51,16 @@ Format as valid JSON only.
 def run_poc():
     # Check for API key
     if not API_KEY:
-        print("Error: OPENAI_API_KEY environment variable not set.")
+        print("Error: OPENROUTER_API_KEY environment variable not set.")
         print("Please set it in .env file or environment.")
         return False
         
-    # API request
+    # API request headers for OpenRouter
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Bearer {API_KEY}"
+        "Authorization": f"Bearer {API_KEY}",
+        "HTTP-Referer": SITE_URL,  # Required by OpenRouter
+        "X-Title": APP_NAME  # Required by OpenRouter
     }
 
     payload = {
@@ -68,7 +72,7 @@ def run_poc():
 
     # Make request
     try:
-        print(f"Connecting to OpenAI API using {MODEL}...")
+        print(f"Connecting to OpenRouter API using {MODEL}...")
         response = requests.post(API_ENDPOINT, headers=headers, json=payload)
         response.raise_for_status()
         

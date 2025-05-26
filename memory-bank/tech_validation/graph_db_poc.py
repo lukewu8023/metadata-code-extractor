@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
-# Graph Database PoC for Metadata Code Extractor
+# Graph Database PoC for Metadata Code Extractor - Neo4j v4.4.44
 import os
 from dotenv import load_dotenv
 import sys
 
 try:
     from neo4j import GraphDatabase
+    import neo4j
+    print(f"Using Neo4j Python driver version: {neo4j.__version__}")
 except ImportError:
     print("Error: neo4j package not installed.")
-    print("Install with: pip install neo4j")
+    print("Install with: pip install neo4j==4.4.44")
     sys.exit(1)
 
 # Load environment variables

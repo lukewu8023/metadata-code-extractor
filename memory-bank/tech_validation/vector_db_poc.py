@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Vector Database PoC for Metadata Code Extractor
+# Vector Database PoC for Metadata Code Extractor - Weaviate v1.24.20
 import os
 import sys
 from dotenv import load_dotenv
@@ -8,12 +8,15 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Check for required packages
-required_packages = ["chromadb", "openai"]
+required_packages = ["weaviate-client", "openai"]
 missing_packages = []
 
 for package in required_packages:
     try:
-        __import__(package)
+        if package == "weaviate-client":
+            import weaviate
+        else:
+            __import__(package)
     except ImportError:
         missing_packages.append(package)
 
@@ -25,63 +28,112 @@ if missing_packages:
     sys.exit(1)
 
 # Now that we've checked, import the packages
-import chromadb
+import weaviate
 from openai import OpenAI
 
 # Configuration
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-CHROMADB_PERSIST_DIRECTORY = os.getenv("CHROMADB_PERSIST_DIRECTORY", "./data/chromadb")
-COLLECTION_NAME = "code_snippets_test"
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+WEAVIATE_URL = os.getenv("WEAVIATE_URL", "http://localhost:8080")
+WEAVIATE_API_KEY = os.getenv("WEAVIATE_API_KEY", "")  # Optional for local instances
+COLLECTION_NAME = "CodeSnippets"
 
 class VectorDBPOC:
     def __init__(self):
         self.connection_success = False
+        self.schema_success = False
         self.embeddings_success = False
         self.storage_success = False
         self.search_success = False
         
-        # Create persistence directory if it doesn't exist
-        os.makedirs(CHROMADB_PERSIST_DIRECTORY, exist_ok=True)
-        
-        # Initialize ChromaDB (persistent)
+        # Initialize Weaviate client
         try:
-            self.client = chromadb.PersistentClient(path=CHROMADB_PERSIST_DIRECTORY)
-            print(f"✅ Connected to ChromaDB (persistence: {CHROMADB_PERSIST_DIRECTORY})")
-            self.connection_success = True
-        except Exception as e:
-            print(f"❌ ChromaDB connection error: {e}")
-            raise
-        
-        # Create or get collection
-        try:
-            # Try to get existing collection or create a new one
-            try:
-                self.collection = self.client.get_collection(name=COLLECTION_NAME)
-                print(f"✅ Using existing collection: {COLLECTION_NAME}")
-            except Exception:  # Collection doesn't exist
-                self.collection = self.client.create_collection(
-                    name=COLLECTION_NAME,
-                    metadata={"description": "Code snippets for metadata extraction"}
+            if WEAVIATE_API_KEY:
+                # For cloud instances with API key
+                self.client = weaviate.Client(
+                    url=WEAVIATE_URL,
+                    auth_client_secret=weaviate.AuthApiKey(api_key=WEAVIATE_API_KEY)
                 )
-                print(f"✅ Created new collection: {COLLECTION_NAME}")
+            else:
+                # For local instances without authentication
+                self.client = weaviate.Client(url=WEAVIATE_URL)
+            
+            # Test connection
+            if self.client.is_ready():
+                print(f"✅ Connected to Weaviate at {WEAVIATE_URL}")
+                self.connection_success = True
+            else:
+                raise Exception("Weaviate is not ready")
+                
         except Exception as e:
-            print(f"❌ Collection creation error: {e}")
+            print(f"❌ Weaviate connection error: {e}")
             raise
         
-        # Initialize embedding provider (OpenAI in this example)
-        if not OPENAI_API_KEY:
-            print("❌ Error: OPENAI_API_KEY environment variable not set")
-            raise ValueError("OPENAI_API_KEY not set")
+        # Initialize embedding provider (OpenRouter in this case)
+        if not OPENROUTER_API_KEY:
+            print("❌ Error: OPENROUTER_API_KEY environment variable not set")
+            raise ValueError("OPENROUTER_API_KEY not set")
             
         try:
-            self.embedding_client = OpenAI(api_key=OPENAI_API_KEY)
-            print("✅ Initialized OpenAI client for embeddings")
+            # Configure OpenAI client to use OpenRouter
+            self.embedding_client = OpenAI(
+                api_key=OPENROUTER_API_KEY,
+                base_url="https://openrouter.ai/api/v1"
+            )
+            print("✅ Initialized OpenRouter client for embeddings")
         except Exception as e:
-            print(f"❌ OpenAI client initialization error: {e}")
+            print(f"❌ OpenRouter client initialization error: {e}")
             raise
         
+    def create_schema(self):
+        """Create Weaviate schema for code snippets"""
+        try:
+            # Check if class already exists
+            if self.client.schema.exists(COLLECTION_NAME):
+                print(f"✅ Schema '{COLLECTION_NAME}' already exists")
+                self.schema_success = True
+                return True
+            
+            # Define schema
+            schema = {
+                "class": COLLECTION_NAME,
+                "description": "Code snippets for metadata extraction",
+                "vectorizer": "none",  # We'll provide our own vectors
+                "properties": [
+                    {
+                        "name": "code",
+                        "dataType": ["text"],
+                        "description": "The source code content"
+                    },
+                    {
+                        "name": "language",
+                        "dataType": ["string"],
+                        "description": "Programming language"
+                    },
+                    {
+                        "name": "description",
+                        "dataType": ["text"],
+                        "description": "Description of the code snippet"
+                    },
+                    {
+                        "name": "snippet_id",
+                        "dataType": ["string"],
+                        "description": "Unique identifier for the snippet"
+                    }
+                ]
+            }
+            
+            # Create schema
+            self.client.schema.create_class(schema)
+            print(f"✅ Created schema '{COLLECTION_NAME}'")
+            self.schema_success = True
+            return True
+            
+        except Exception as e:
+            print(f"❌ Schema creation error: {e}")
+            return False
+        
     def generate_embedding(self, text):
-        """Generate embedding for text using OpenAI"""
+        """Generate embedding for text using OpenRouter"""
         try:
             response = self.embedding_client.embeddings.create(
                 input=text,
@@ -94,61 +146,68 @@ class VectorDBPOC:
             raise
         
     def add_snippets(self, snippets):
-        """Add code snippets to vector DB"""
+        """Add code snippets to Weaviate"""
         try:
-            ids = [f"snippet_{i}" for i in range(len(snippets))]
-            
-            # Generate embeddings
             print(f"Generating embeddings for {len(snippets)} snippets...")
-            embeddings = [self.generate_embedding(snippet["code"]) for snippet in snippets]
             
-            # Extract metadata
-            metadatas = [{"language": snippet["language"], 
-                        "description": snippet["description"]} 
-                        for snippet in snippets]
-            
-            # Extract document text
-            documents = [snippet["code"] for snippet in snippets]
-            
-            # Add to collection
-            self.collection.add(
-                embeddings=embeddings,
-                documents=documents,
-                metadatas=metadatas,
-                ids=ids
-            )
+            # Process each snippet
+            for i, snippet in enumerate(snippets):
+                # Generate embedding
+                embedding = self.generate_embedding(snippet["code"])
+                
+                # Prepare data object
+                data_object = {
+                    "code": snippet["code"],
+                    "language": snippet["language"],
+                    "description": snippet["description"],
+                    "snippet_id": f"snippet_{i}"
+                }
+                
+                # Add to Weaviate with vector
+                self.client.data_object.create(
+                    data_object=data_object,
+                    class_name=COLLECTION_NAME,
+                    vector=embedding
+                )
             
             self.storage_success = True
-            print(f"✅ {len(snippets)} snippets added to vector DB")
+            print(f"✅ {len(snippets)} snippets added to Weaviate")
             return True
+            
         except Exception as e:
             print(f"❌ Data storage error: {e}")
             return False
         
     def search(self, query, n_results=2):
-        """Search for similar snippets"""
+        """Search for similar snippets using vector similarity"""
         try:
             # Generate query embedding
             print(f"Generating embedding for query: '{query}'")
             query_embedding = self.generate_embedding(query)
             
-            # Search
-            results = self.collection.query(
-                query_embeddings=[query_embedding],
-                n_results=n_results
+            # Perform vector search
+            result = (
+                self.client.query
+                .get(COLLECTION_NAME, ["code", "language", "description", "snippet_id"])
+                .with_near_vector({"vector": query_embedding})
+                .with_limit(n_results)
+                .with_additional(["distance"])
+                .do()
             )
             
             self.search_success = True
-            return results
+            return result
+            
         except Exception as e:
             print(f"❌ Search error: {e}")
             return None
             
     def cleanup(self):
-        """Clean up test collection"""
+        """Clean up test schema"""
         try:
-            self.client.delete_collection(COLLECTION_NAME)
-            print(f"✅ Test collection '{COLLECTION_NAME}' deleted")
+            if self.client.schema.exists(COLLECTION_NAME):
+                self.client.schema.delete_class(COLLECTION_NAME)
+                print(f"✅ Test schema '{COLLECTION_NAME}' deleted")
             return True
         except Exception as e:
             print(f"❌ Cleanup error: {e}")
@@ -206,8 +265,12 @@ def process_user_data(user_data: dict) -> User:
 def run_poc():
     poc = None
     try:
-        print("Initializing Vector DB PoC...")
+        print("Initializing Weaviate Vector DB PoC...")
         poc = VectorDBPOC()
+        
+        # Create schema
+        if not poc.create_schema():
+            return False
         
         # Add snippets
         if not poc.add_snippets(code_snippets):
@@ -218,33 +281,36 @@ def run_poc():
         print(f"\nPerforming similarity search with query: '{query}'")
         results = poc.search(query)
         
-        if not results:
+        if not results or not results.get("data", {}).get("Get", {}).get("CodeSnippets"):
             print("❌ Search returned no results")
             return False
             
         print("\n✅ Search Results:")
-        for i, (doc, metadata, distance) in enumerate(zip(
-            results["documents"][0], 
-            results["metadatas"][0],
-            results["distances"][0]
-        )):
+        snippets = results["data"]["Get"]["CodeSnippets"]
+        
+        for i, snippet in enumerate(snippets):
+            distance = snippet.get("_additional", {}).get("distance", 0)
+            similarity = 1 - distance  # Convert distance to similarity
+            
             print(f"\nResult {i+1}:")
-            print(f"Language: {metadata['language']}")
-            print(f"Description: {metadata['description']}")
-            print(f"Similarity score: {1 - distance:.4f}")  # Convert distance to similarity
-            print(f"Code snippet: {doc[:100]}...")
+            print(f"Language: {snippet['language']}")
+            print(f"Description: {snippet['description']}")
+            print(f"Similarity score: {similarity:.4f}")
+            print(f"Code snippet: {snippet['code'][:100]}...")
         
         # Optional cleanup
         poc.cleanup()
         
         # Check overall success
         success = (poc.connection_success and 
+                  poc.schema_success and
                   poc.embeddings_success and 
                   poc.storage_success and 
                   poc.search_success)
         
         print("\n" + "=" * 50)
-        print("ChromaDB Connection: " + ("✅ PASS" if poc.connection_success else "❌ FAIL"))
+        print("Weaviate Connection: " + ("✅ PASS" if poc.connection_success else "❌ FAIL"))
+        print("Schema Creation: " + ("✅ PASS" if poc.schema_success else "❌ FAIL"))
         print("Embedding Generation: " + ("✅ PASS" if poc.embeddings_success else "❌ FAIL"))
         print("Vector Storage: " + ("✅ PASS" if poc.storage_success else "❌ FAIL"))
         print("Similarity Search: " + ("✅ PASS" if poc.search_success else "❌ FAIL"))

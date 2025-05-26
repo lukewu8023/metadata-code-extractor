@@ -5,29 +5,29 @@
 ### LLM Provider Selection
 | Provider | Recommended Models | Selection Criteria | Advantages | Limitations |
 |----------|-------------------|-------------------|------------|-------------|
+| **OpenRouter** ⭐ | Multiple models via unified API | - Access to multiple providers<br>- Cost optimization<br>- Model flexibility<br>- Unified interface | - Multiple model options<br>- Competitive pricing<br>- Single API integration<br>- Fallback capabilities | - Additional abstraction layer<br>- Dependency on third party<br>- Variable model availability |
 | OpenAI   | GPT-4 or GPT-4o   | - Strong code understanding<br>- Robust JSON output<br>- Good technical reasoning | - Strong technical capabilities<br>- Reliable structured output<br>- Widely used with Python | - Higher cost<br>- Rate limits<br>- API changes |
 | Anthropic | Claude 3 Opus or Sonnet | - Excellent context handling<br>- Strong reasoning<br>- Code understanding | - Large context window<br>- Good structured output<br>- May handle nuance better | - Less widely used<br>- Higher latency (Opus)<br>- Fewer integrations |
-| Local/Open Source | Ollama (Llama-3, CodeLlama) | - No external API<br>- Lower cost<br>- Privacy | - No rate limits<br>- Self-contained<br>- Privacy | - Lower quality<br>- Higher hardware requirements<br>- Setup complexity |
 
-**Recommendation:** Primary: OpenAI GPT-4o, Secondary/Alternative: Claude 3 Sonnet. Consider a pluggable architecture that allows switching between providers.
+**SELECTED:** OpenRouter with access to multiple models (GPT-4, Claude-3, etc.) for flexibility and cost optimization.
 
 ### Graph Database Selection
 | Database | Selection Criteria | Advantages | Limitations |
 |----------|-------------------|------------|-------------|
-| Neo4j    | - Mature graph DB<br>- Rich query language (Cypher)<br>- Strong Python support | - Well-established<br>- Extensive documentation<br>- Community support<br>- Visualization tools | - Resource intensive<br>- Licensing costs for enterprise<br>- Setup complexity |
+| **Neo4j v4.4.44** ⭐ | - Mature graph DB<br>- Rich query language (Cypher)<br>- Strong Python support<br>- Stable LTS version | - Well-established<br>- Extensive documentation<br>- Community support<br>- Visualization tools<br>- Production-ready | - Resource intensive<br>- Licensing costs for enterprise<br>- Setup complexity |
 | Memgraph | - Memory-optimized graph DB<br>- Compatible with Cypher<br>- Developer-friendly | - Better performance<br>- Developer-friendly<br>- Docker support<br>- Free developer edition | - Newer project<br>- Smaller community<br>- Fewer integrations |
 | SQLite + NetworkX | - Lightweight<br>- No external dependencies<br>- Simplicity | - No setup required<br>- Self-contained<br>- Easier dev/test | - Limited scalability<br>- No graph-native queries<br>- Performance with scale |
 
-**Recommendation:** Primary: Neo4j, Alternative for simpler setup: SQLite+NetworkX for development/MVP. Begin with Neo4j if feasible due to its ecosystem and tooling.
+**SELECTED:** Neo4j v4.4.44 (LTS) for its maturity, extensive tooling, and production-ready capabilities.
 
 ### Vector Database Selection
 | Database | Selection Criteria | Advantages | Limitations |
 |----------|-------------------|------------|-------------|
 | ChromaDB | - Python-native<br>- Embedded mode<br>- Document-oriented | - Simple setup<br>- Python-first API<br>- Active development<br>- Built-in metadata | - Newer project<br>- Scale limitations<br>- Fewer advanced features |
 | FAISS (Meta) | - Performance<br>- Scalability<br>- Maturity | - Highly optimized<br>- Low memory usage<br>- Fast search<br>- Industry standard | - Lower-level API<br>- Minimal metadata support<br>- Requires wrappers |
-| Weaviate | - Hybrid search<br>- Cloud-native<br>- GraphQL API | - Combines vector & keyword<br>- Built-in schema<br>- Production-ready | - More complex setup<br>- Heavier resource usage<br>- Steeper learning curve |
+| **Weaviate v1.24.20** ⭐ | - Hybrid search<br>- Cloud-native<br>- GraphQL API<br>- Production-ready<br>- Stable version | - Combines vector & keyword<br>- Built-in schema<br>- Production-ready<br>- Advanced filtering<br>- Multi-tenancy support | - More complex setup<br>- Heavier resource usage<br>- Steeper learning curve |
 
-**Recommendation:** Primary: ChromaDB, Alternative: FAISS with custom metadata layer. ChromaDB provides the best balance of ease-of-use and functionality for the project's needs.
+**SELECTED:** Weaviate v1.24.20 for its production-ready capabilities, hybrid search features, and advanced metadata handling.
 
 ## 2. Proof of Concept (PoC) Requirements
 
@@ -441,19 +441,14 @@ dependencies = [
     "python-dotenv>=1.0.0",   # Environment variable management
     "PyYAML>=6.0",            # Configuration file support
     
-    # LLM integration - provider specific (choose based on selection)
-    "openai>=1.6.0",          # OpenAI API client
-    "anthropic>=0.5.0",       # Anthropic API client
+    # LLM integration - OpenRouter
+    "openai>=1.6.0",          # OpenAI client (compatible with OpenRouter API)
     
-    # Graph database - provider specific (choose based on selection)
-    "neo4j>=5.14.0",          # Neo4j driver
-    "memgraph-python>=0.1",   # Memgraph driver (optional)
-    "networkx>=3.1",          # Graph algorithms (for SQLite-based fallback)
+    # Graph database - Neo4j v4.4.44
+    "neo4j==4.4.44",          # Neo4j driver (specific LTS version)
     
-    # Vector database - provider specific (choose based on selection)
-    "chromadb>=0.4.18",       # ChromaDB client
-    "faiss-cpu>=1.7.4",       # FAISS vector library (optional)
-    "weaviate-client>=3.25.0",# Weaviate client (optional)
+    # Vector database - Weaviate v1.24.20
+    "weaviate-client==3.24.2", # Weaviate client (compatible with v1.24.20)
     
     # HTTP and async support
     "aiohttp>=3.8.5",         # Async HTTP client
@@ -534,26 +529,25 @@ echo "Validation complete!"
 Create a `.env.example` file with all required configuration variables:
 
 ```
-# LLM Provider Configuration
-LLM_PROVIDER=openai  # Options: openai, anthropic
-OPENAI_API_KEY=your_api_key_here
-ANTHROPIC_API_KEY=your_api_key_here
-
-# Model Configuration
-OPENAI_MODEL=gpt-4  # Options: gpt-4, gpt-4o, gpt-3.5-turbo
-ANTHROPIC_MODEL=claude-3-sonnet  # Options: claude-3-opus, claude-3-sonnet
+# LLM Provider Configuration - OpenRouter
+LLM_PROVIDER=openrouter
+OPENROUTER_API_KEY=your_openrouter_api_key_here
+OPENROUTER_MODEL=openai/gpt-4  # Options: openai/gpt-4, anthropic/claude-3-sonnet, etc.
+OPENROUTER_SITE_URL=https://github.com/metadata-code-extractor
+OPENROUTER_APP_NAME=metadata-code-extractor
 
 # Database Configuration
-GRAPH_DB_PROVIDER=neo4j  # Options: neo4j, memgraph, sqlite
-VECTOR_DB_PROVIDER=chroma  # Options: chroma, faiss, weaviate
+GRAPH_DB_PROVIDER=neo4j
+VECTOR_DB_PROVIDER=weaviate
 
-# Neo4j Configuration
+# Neo4j v4.4.44 Configuration
 NEO4J_URI=bolt://localhost:7687
 NEO4J_USER=neo4j
-NEO4J_PASSWORD=password
+NEO4J_PASSWORD=your_neo4j_password_here
 
-# ChromaDB Configuration
-CHROMADB_PERSIST_DIRECTORY=./data/chromadb
+# Weaviate v1.24.20 Configuration
+WEAVIATE_URL=http://localhost:8080
+WEAVIATE_API_KEY=  # Optional - leave empty for local instances
 
 # Scanning Configuration
 DEFAULT_CHUNK_SIZE=40
