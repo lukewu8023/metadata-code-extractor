@@ -11,7 +11,7 @@ import time
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Union
 
-from metadata_code_extractor.core.models.llm_models import (
+from metadata_code_extractor.core.models.llm import (
     ChatMessage,
     EmbeddingConfig,
     EmbeddingResponse,

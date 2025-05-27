@@ -9,7 +9,7 @@ from unittest.mock import Mock, patch, mock_open
 import yaml
 import json
 
-from metadata_code_extractor.core.prompts.manager import (
+from metadata_code_extractor.prompts.manager import (
     PromptManager,
     PromptTemplate,
     PromptManagerError,

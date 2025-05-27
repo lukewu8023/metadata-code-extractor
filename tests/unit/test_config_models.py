@@ -8,7 +8,7 @@ including validation, defaults, and environment variable loading.
 import os
 import pytest
 from pydantic import ValidationError
-from metadata_code_extractor.core.models.config_models import (
+from metadata_code_extractor.core.models.config import (
     LLMProviderConfig,
     ModelParams,
     LLMSettings,

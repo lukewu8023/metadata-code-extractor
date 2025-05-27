@@ -9,7 +9,7 @@ import pytest
 from unittest.mock import AsyncMock, Mock, patch
 from typing import List, Optional
 
-from metadata_code_extractor.core.models.llm_models import (
+from metadata_code_extractor.core.models.llm import (
     ChatMessage, MessageRole, ModelConfig, EmbeddingConfig, 
     LLMResponse, EmbeddingResponse
 )
@@ -75,7 +75,7 @@ class TestLLMClient:
                                              sample_model_config, sample_llm_response):
         """Test successful chat completion."""
         # Import here to avoid circular imports during test discovery
-        from metadata_code_extractor.core.llm.client import LLMClient
+        from metadata_code_extractor.integrations.llm.client import LLMClient
         
         # Setup mock
         mock_provider_adapter.get_chat_completion.return_value = sample_llm_response
@@ -96,7 +96,7 @@ class TestLLMClient:
     async def test_get_chat_completion_with_caching(self, mock_provider_adapter, sample_chat_messages,
                                                    sample_model_config, sample_llm_response):
         """Test chat completion with caching enabled."""
-        from metadata_code_extractor.core.llm.client import LLMClient
+        from metadata_code_extractor.integrations.llm.client import LLMClient
         
         # Setup mock
         mock_provider_adapter.get_chat_completion.return_value = sample_llm_response
@@ -128,7 +128,7 @@ class TestLLMClient:
     @pytest.mark.asyncio
     async def test_generate_text_success(self, mock_provider_adapter, sample_model_config, sample_llm_response):
         """Test successful text generation."""
-        from metadata_code_extractor.core.llm.client import LLMClient
+        from metadata_code_extractor.integrations.llm.client import LLMClient
         
         # Setup mock
         mock_provider_adapter.get_chat_completion.return_value = sample_llm_response
@@ -152,7 +152,7 @@ class TestLLMClient:
     async def test_generate_embeddings_success(self, mock_provider_adapter, sample_embedding_config, 
                                              sample_embedding_response):
         """Test successful embedding generation."""
-        from metadata_code_extractor.core.llm.client import LLMClient
+        from metadata_code_extractor.integrations.llm.client import LLMClient
         
         # Setup mock
         mock_provider_adapter.generate_embeddings.return_value = sample_embedding_response
@@ -173,7 +173,7 @@ class TestLLMClient:
     @pytest.mark.asyncio
     async def test_provider_error_handling(self, mock_provider_adapter, sample_chat_messages, sample_model_config):
         """Test handling of provider errors."""
-        from metadata_code_extractor.core.llm.client import LLMClient, LLMProviderError
+        from metadata_code_extractor.integrations.llm.client import LLMClient, LLMProviderError
         
         # Setup mock to raise an error
         mock_provider_adapter.get_chat_completion.side_effect = LLMProviderError("API Error")
@@ -188,7 +188,7 @@ class TestLLMClient:
     @pytest.mark.asyncio
     async def test_provider_unavailable(self, mock_provider_adapter, sample_chat_messages, sample_model_config):
         """Test handling when provider is unavailable."""
-        from metadata_code_extractor.core.llm.client import LLMClient, LLMProviderError
+        from metadata_code_extractor.integrations.llm.client import LLMClient, LLMProviderError
         
         # Setup mock to be unavailable
         mock_provider_adapter.is_available.return_value = False
@@ -202,7 +202,7 @@ class TestLLMClient:
     
     def test_client_initialization_with_defaults(self):
         """Test client initialization with default parameters."""
-        from metadata_code_extractor.core.llm.client import LLMClient
+        from metadata_code_extractor.integrations.llm.client import LLMClient
         
         # Should be able to create client without parameters (will use defaults)
         client = LLMClient()
@@ -213,7 +213,7 @@ class TestLLMClient:
     
     def test_client_initialization_with_custom_adapter(self, mock_provider_adapter):
         """Test client initialization with custom adapter."""
-        from metadata_code_extractor.core.llm.client import LLMClient
+        from metadata_code_extractor.integrations.llm.client import LLMClient
         
         # Create client with custom adapter
         client = LLMClient(provider_adapter=mock_provider_adapter)
@@ -224,7 +224,7 @@ class TestLLMClient:
     @pytest.mark.asyncio
     async def test_empty_messages_handling(self, mock_provider_adapter, sample_model_config):
         """Test handling of empty message list."""
-        from metadata_code_extractor.core.llm.client import LLMClient, LLMClientError
+        from metadata_code_extractor.integrations.llm.client import LLMClient, LLMClientError
         
         # Create client
         client = LLMClient(provider_adapter=mock_provider_adapter)
@@ -236,7 +236,7 @@ class TestLLMClient:
     @pytest.mark.asyncio
     async def test_empty_texts_for_embeddings(self, mock_provider_adapter, sample_embedding_config):
         """Test handling of empty text list for embeddings."""
-        from metadata_code_extractor.core.llm.client import LLMClient, LLMClientError
+        from metadata_code_extractor.integrations.llm.client import LLMClient, LLMClientError
         
         # Create client
         client = LLMClient(provider_adapter=mock_provider_adapter)
@@ -248,7 +248,7 @@ class TestLLMClient:
     @pytest.mark.asyncio
     async def test_cache_key_generation(self, mock_provider_adapter, sample_chat_messages, sample_model_config):
         """Test that cache keys are generated consistently."""
-        from metadata_code_extractor.core.llm.client import LLMClient
+        from metadata_code_extractor.integrations.llm.client import LLMClient
         
         mock_cache = Mock()
         mock_cache.get = Mock(return_value=None)
@@ -271,7 +271,7 @@ class TestLLMProviderAdapter:
     
     def test_provider_adapter_interface(self):
         """Test that provider adapter interface is properly defined."""
-        from metadata_code_extractor.core.llm.client import LLMProviderAdapter
+        from metadata_code_extractor.integrations.llm.client import LLMProviderAdapter
         
         # Should be an abstract base class
         assert hasattr(LLMProviderAdapter, '__abstractmethods__')
@@ -286,7 +286,7 @@ class TestLLMExceptions:
     
     def test_llm_client_error(self):
         """Test LLMClientError exception."""
-        from metadata_code_extractor.core.llm.client import LLMClientError
+        from metadata_code_extractor.integrations.llm.client import LLMClientError
         
         error = LLMClientError("Test error")
         assert str(error) == "Test error"
@@ -294,7 +294,7 @@ class TestLLMExceptions:
     
     def test_llm_provider_error(self):
         """Test LLMProviderError exception."""
-        from metadata_code_extractor.core.llm.client import LLMProviderError
+        from metadata_code_extractor.integrations.llm.client import LLMProviderError
         
         error = LLMProviderError("Provider error")
         assert str(error) == "Provider error"
@@ -302,7 +302,7 @@ class TestLLMExceptions:
     
     def test_llm_cache_error(self):
         """Test LLMCacheError exception."""
-        from metadata_code_extractor.core.llm.client import LLMCacheError
+        from metadata_code_extractor.integrations.llm.client import LLMCacheError
         
         error = LLMCacheError("Cache error")
         assert str(error) == "Cache error"

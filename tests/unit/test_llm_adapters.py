@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, Mock, patch
 from typing import List, Optional
 import json
 
-from metadata_code_extractor.core.models.llm_models import (
+from metadata_code_extractor.core.models.llm import (
     ChatMessage, MessageRole, ModelConfig, EmbeddingConfig, 
     LLMResponse, EmbeddingResponse
 )
@@ -87,7 +87,7 @@ class TestOpenAIAdapter:
     async def test_get_chat_completion_success(self, mock_openai_client, openai_chat_response,
                                              sample_chat_messages, sample_model_config):
         """Test successful chat completion with OpenAI adapter."""
-        from metadata_code_extractor.core.llm.adapters import OpenAIAdapter
+        from metadata_code_extractor.integrations.llm.providers.adapters import OpenAIAdapter
         
         # Setup mock
         mock_openai_client.chat.completions.create.return_value = openai_chat_response
@@ -117,7 +117,7 @@ class TestOpenAIAdapter:
     async def test_generate_embeddings_success(self, mock_openai_client, openai_embedding_response,
                                              sample_embedding_config):
         """Test successful embedding generation with OpenAI adapter."""
-        from metadata_code_extractor.core.llm.adapters import OpenAIAdapter
+        from metadata_code_extractor.integrations.llm.providers.adapters import OpenAIAdapter
         
         # Setup mock
         mock_openai_client.embeddings.create.return_value = openai_embedding_response
@@ -144,7 +144,7 @@ class TestOpenAIAdapter:
     @pytest.mark.asyncio
     async def test_is_available_success(self, mock_openai_client):
         """Test availability check when client is working."""
-        from metadata_code_extractor.core.llm.adapters import OpenAIAdapter
+        from metadata_code_extractor.integrations.llm.providers.adapters import OpenAIAdapter
         
         # Setup mock for a simple test call
         test_response = Mock()
@@ -166,7 +166,7 @@ class TestOpenAIAdapter:
     @pytest.mark.asyncio
     async def test_is_available_failure(self, mock_openai_client):
         """Test availability check when client fails."""
-        from metadata_code_extractor.core.llm.adapters import OpenAIAdapter
+        from metadata_code_extractor.integrations.llm.providers.adapters import OpenAIAdapter
         
         # Setup mock to raise an exception
         mock_openai_client.chat.completions.create.side_effect = Exception("API Error")
@@ -183,8 +183,8 @@ class TestOpenAIAdapter:
     @pytest.mark.asyncio
     async def test_chat_completion_api_error(self, mock_openai_client, sample_chat_messages, sample_model_config):
         """Test handling of API errors during chat completion."""
-        from metadata_code_extractor.core.llm.adapters import OpenAIAdapter
-        from metadata_code_extractor.core.llm.client import LLMProviderError
+        from metadata_code_extractor.integrations.llm.providers.adapters import OpenAIAdapter
+        from metadata_code_extractor.integrations.llm.client import LLMProviderError
         
         # Setup mock to raise an exception
         mock_openai_client.chat.completions.create.side_effect = Exception("API Error")
@@ -199,8 +199,8 @@ class TestOpenAIAdapter:
     @pytest.mark.asyncio
     async def test_embeddings_api_error(self, mock_openai_client, sample_embedding_config):
         """Test handling of API errors during embedding generation."""
-        from metadata_code_extractor.core.llm.adapters import OpenAIAdapter
-        from metadata_code_extractor.core.llm.client import LLMProviderError
+        from metadata_code_extractor.integrations.llm.providers.adapters import OpenAIAdapter
+        from metadata_code_extractor.integrations.llm.client import LLMProviderError
         
         # Setup mock to raise an exception
         mock_openai_client.embeddings.create.side_effect = Exception("API Error")
@@ -214,7 +214,7 @@ class TestOpenAIAdapter:
     
     def test_adapter_initialization_with_config(self):
         """Test adapter initialization with configuration."""
-        from metadata_code_extractor.core.llm.adapters import OpenAIAdapter
+        from metadata_code_extractor.integrations.llm.providers.adapters import OpenAIAdapter
         
         config = {
             "api_key": "test-key",
@@ -222,7 +222,7 @@ class TestOpenAIAdapter:
             "organization": "test-org"
         }
         
-        with patch('metadata_code_extractor.core.llm.adapters.OpenAI') as mock_openai:
+        with patch('metadata_code_extractor.integrations.llm.providers.adapters.OpenAI') as mock_openai:
             adapter = OpenAIAdapter(config=config)
             
             # Verify OpenAI client was created with correct config
@@ -234,9 +234,9 @@ class TestOpenAIAdapter:
     
     def test_adapter_initialization_without_config(self):
         """Test adapter initialization without configuration (should use env vars)."""
-        from metadata_code_extractor.core.llm.adapters import OpenAIAdapter
+        from metadata_code_extractor.integrations.llm.providers.adapters import OpenAIAdapter
         
-        with patch('metadata_code_extractor.core.llm.adapters.OpenAI') as mock_openai:
+        with patch('metadata_code_extractor.integrations.llm.providers.adapters.OpenAI') as mock_openai:
             adapter = OpenAIAdapter()
             
             # Verify OpenAI client was created with default config
@@ -273,7 +273,7 @@ class TestMockAdapter:
     @pytest.mark.asyncio
     async def test_get_chat_completion_success(self, sample_chat_messages, sample_model_config):
         """Test successful chat completion with Mock adapter."""
-        from metadata_code_extractor.core.llm.adapters import MockAdapter
+        from metadata_code_extractor.integrations.llm.providers.adapters import MockAdapter
         
         # Create adapter
         adapter = MockAdapter()
@@ -292,7 +292,7 @@ class TestMockAdapter:
     @pytest.mark.asyncio
     async def test_generate_embeddings_success(self, sample_embedding_config):
         """Test successful embedding generation with Mock adapter."""
-        from metadata_code_extractor.core.llm.adapters import MockAdapter
+        from metadata_code_extractor.integrations.llm.providers.adapters import MockAdapter
         
         # Create adapter
         adapter = MockAdapter()
@@ -316,7 +316,7 @@ class TestMockAdapter:
     @pytest.mark.asyncio
     async def test_is_available_always_true(self):
         """Test that mock adapter is always available."""
-        from metadata_code_extractor.core.llm.adapters import MockAdapter
+        from metadata_code_extractor.integrations.llm.providers.adapters import MockAdapter
         
         # Create adapter
         adapter = MockAdapter()
@@ -330,7 +330,7 @@ class TestMockAdapter:
     @pytest.mark.asyncio
     async def test_mock_response_includes_context(self, sample_model_config):
         """Test that mock responses include context from messages."""
-        from metadata_code_extractor.core.llm.adapters import MockAdapter
+        from metadata_code_extractor.integrations.llm.providers.adapters import MockAdapter
         
         # Create adapter
         adapter = MockAdapter()
@@ -349,7 +349,7 @@ class TestMockAdapter:
     
     def test_mock_adapter_initialization(self):
         """Test mock adapter initialization."""
-        from metadata_code_extractor.core.llm.adapters import MockAdapter
+        from metadata_code_extractor.integrations.llm.providers.adapters import MockAdapter
         
         # Test with default settings
         adapter1 = MockAdapter()
@@ -364,8 +364,8 @@ class TestMockAdapter:
     @pytest.mark.asyncio
     async def test_mock_adapter_simulated_failure(self, sample_chat_messages, sample_model_config):
         """Test mock adapter simulated failures."""
-        from metadata_code_extractor.core.llm.adapters import MockAdapter
-        from metadata_code_extractor.core.llm.client import LLMProviderError
+        from metadata_code_extractor.integrations.llm.providers.adapters import MockAdapter
+        from metadata_code_extractor.integrations.llm.client import LLMProviderError
         
         # Create adapter with 100% failure rate
         adapter = MockAdapter(fail_rate=1.0)
@@ -377,7 +377,7 @@ class TestMockAdapter:
     @pytest.mark.asyncio
     async def test_mock_adapter_response_delay(self, sample_chat_messages, sample_model_config):
         """Test mock adapter response delay."""
-        from metadata_code_extractor.core.llm.adapters import MockAdapter
+        from metadata_code_extractor.integrations.llm.providers.adapters import MockAdapter
         import time
         
         # Create adapter with delay
@@ -398,7 +398,7 @@ class TestAdapterFactory:
     
     def test_create_openai_adapter(self):
         """Test creating OpenAI adapter through factory."""
-        from metadata_code_extractor.core.llm.adapters import create_adapter
+        from metadata_code_extractor.integrations.llm.providers.adapters import create_adapter
         
         config = {
             "provider": "openai",
@@ -406,15 +406,15 @@ class TestAdapterFactory:
             "base_url": "https://openrouter.ai/api/v1"
         }
         
-        with patch('metadata_code_extractor.core.llm.adapters.OpenAI'):
+        with patch('metadata_code_extractor.integrations.llm.providers.adapters.OpenAI'):
             adapter = create_adapter(config)
             
-            from metadata_code_extractor.core.llm.adapters import OpenAIAdapter
+            from metadata_code_extractor.integrations.llm.providers.adapters import OpenAIAdapter
             assert isinstance(adapter, OpenAIAdapter)
     
     def test_create_mock_adapter(self):
         """Test creating Mock adapter through factory."""
-        from metadata_code_extractor.core.llm.adapters import create_adapter
+        from metadata_code_extractor.integrations.llm.providers.adapters import create_adapter
         
         config = {
             "provider": "mock",
@@ -424,14 +424,14 @@ class TestAdapterFactory:
         
         adapter = create_adapter(config)
         
-        from metadata_code_extractor.core.llm.adapters import MockAdapter
+        from metadata_code_extractor.integrations.llm.providers.adapters import MockAdapter
         assert isinstance(adapter, MockAdapter)
         assert adapter.response_delay == 0.2
         assert adapter.fail_rate == 0.1
     
     def test_create_adapter_invalid_provider(self):
         """Test creating adapter with invalid provider."""
-        from metadata_code_extractor.core.llm.adapters import create_adapter
+        from metadata_code_extractor.integrations.llm.providers.adapters import create_adapter
         
         config = {"provider": "invalid"}
         
@@ -440,7 +440,7 @@ class TestAdapterFactory:
     
     def test_create_adapter_missing_provider(self):
         """Test creating adapter without provider specified."""
-        from metadata_code_extractor.core.llm.adapters import create_adapter
+        from metadata_code_extractor.integrations.llm.providers.adapters import create_adapter
         
         config = {}
         

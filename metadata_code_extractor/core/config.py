@@ -15,7 +15,7 @@ from typing import Any, Dict, Optional
 import yaml
 from pydantic import ValidationError
 
-from metadata_code_extractor.core.models.config_models import AppConfig
+from metadata_code_extractor.core.models.config import AppConfig
 
 logger = logging.getLogger(__name__)
 

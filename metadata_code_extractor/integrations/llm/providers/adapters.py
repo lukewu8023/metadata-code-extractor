@@ -16,8 +16,8 @@ try:
 except ImportError:
     OpenAI = None
 
-from metadata_code_extractor.core.llm.client import LLMProviderAdapter, LLMProviderError
-from metadata_code_extractor.core.models.llm_models import (
+from metadata_code_extractor.integrations.llm.client import LLMProviderAdapter, LLMProviderError
+from metadata_code_extractor.core.models.llm import (
     ChatMessage,
     EmbeddingConfig,
     EmbeddingResponse,

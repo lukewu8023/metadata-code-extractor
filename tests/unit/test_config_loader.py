@@ -14,7 +14,7 @@ import pytest
 import yaml
 
 from metadata_code_extractor.core.config import ConfigLoader
-from metadata_code_extractor.core.models.config_models import AppConfig
+from metadata_code_extractor.core.models.config import AppConfig
 
 
 class TestConfigLoader:
