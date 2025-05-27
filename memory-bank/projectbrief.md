@@ -67,22 +67,9 @@ Represents individual data fields/attributes within entities
 
 The graph structure supports detailed lineage tracking at both entity and field levels.
 
-## Dependencies
-- *   **Python 3.9+ Environment.**
-- *   **LLM Provider:** OpenRouter API for access to multiple LLM models (GPT-4, Claude-3, etc.). **SELECTED & VALIDATED**
-- *   **Graph Database:** Neo4j v4.4.44 (LTS) for storing structured metadata and relationships. **SELECTED & VALIDATED (driver v4.4.12 with target v4.4.44)**
-- *   **Vector Database:** Weaviate v1.24.20 for storing embeddings and semantic search. **SELECTED & VALIDATED (client v3.24.2)**
-- *   **Python Libraries:** As defined in `pyproject.toml`/`requirements.txt` (e.g., Pydantic, Click, HTTP clients, `openai`, `neo4j==4.4.12`, `weaviate-client==3.24.2`).
-
-## Potential Challenges & Mitigations
-// ... existing code ...
-
 ## Creative Phase Components
 - Based on the design, the following areas involve significant design decisions and will benefit from or require creative approaches during implementation:
 - *   **LLM Orchestrator Agent Reasoning Logic:** Designing the ReAct prompts and decision-making framework for the agent.
 - *   **Prompt Engineering:** Crafting and refining LLM prompts for all scanners, the evaluator, and the agent itself. This is an ongoing creative process outlined in `prompt-engineering.md`.
 - *   **Completeness Rules Definition:** Designing the initial and subsequent sets of rules for the `CompletenessEvaluator`.
 - *   **Gap Resolution Strategies:** Developing diverse and effective strategies for the agent to fill different types of metadata gaps.
-
----
-*This document was previously `tasks.md` and has been repurposed and updated to serve as the Project Brief, incorporating information from the original brief and reflecting the current project status after technology validation.* 

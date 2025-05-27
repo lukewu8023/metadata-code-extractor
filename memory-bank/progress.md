@@ -1,4 +1,4 @@
-# Progress - Metadata Code Extractor
+# Metadata Code Extractor - Progress
 
 ## Project Timeline
 | Date    | Milestone                                          | Status      |
@@ -27,7 +27,7 @@
 - Detailed design for LLM Integration (`memory-bank/llm-integration-design.md`)
 - Detailed design for Database Integration (`memory-bank/database-integration-design.md`)
 - Detailed design for Core Data Models (`memory-bank/core-data-models.md`)
-- Detailed design for Configuration Management (`memory-bank/onfiguration-management-design.md`)
+- Detailed design for Configuration Management (`memory-bank/configuration-management-design.md`)
 - Detailed design for Logging (`memory-bank/logging-design.md`)
 - Detailed design for Testing Strategy (`memory-bank/testing-strategy.md`)
 - Developed Technology Validation Plan (`memory-bank/technology-validation-plan.md`)
