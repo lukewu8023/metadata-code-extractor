@@ -21,7 +21,28 @@ class TestConfigLoader:
     """Test configuration loading functionality."""
 
     def test_load_default_config(self):
-        """Test loading default configuration."""
+        """
+        Test loading default configuration.
+        
+        Purpose: Verify that ConfigLoader can create a valid AppConfig instance with default values
+        when no configuration file or environment variables are provided.
+        
+        Checkpoints:
+        - ConfigLoader.load() returns an AppConfig instance
+        - Default LLM provider is "mock"
+        - Default graph DB type is "sqlite_graph_mock"
+        - Default vector DB type is "mock"
+        - Default log level is "INFO"
+        
+        Mocks: None - tests actual default configuration loading
+        
+        Dependencies:
+        - ConfigLoader class from core.config
+        - AppConfig model from core.models.config
+        
+        Notes: This test ensures the system has sensible defaults and can run without
+        any external configuration, which is crucial for development and testing.
+        """
         loader = ConfigLoader()
         config = loader.load()
         
@@ -32,7 +53,29 @@ class TestConfigLoader:
         assert config.log_level == "INFO"
 
     def test_load_from_yaml_file(self):
-        """Test loading configuration from YAML file."""
+        """
+        Test loading configuration from YAML file.
+        
+        Purpose: Verify that ConfigLoader can parse and load configuration from a YAML file,
+        overriding default values with file-specified values.
+        
+        Checkpoints:
+        - YAML file is correctly parsed
+        - Configuration values from file override defaults
+        - Nested configuration structures (llm.default_provider) work correctly
+        - File cleanup occurs properly
+        
+        Mocks: None - uses real temporary file system operations
+        
+        Dependencies:
+        - tempfile module for creating temporary YAML files
+        - yaml module for YAML serialization
+        - os.unlink for file cleanup
+        
+        Notes: Uses tempfile.NamedTemporaryFile to create a real YAML file on disk,
+        ensuring the loader can handle actual file I/O operations. The test cleans up
+        the temporary file in a try/finally block to prevent test pollution.
+        """
         config_data = {
             "llm": {
                 "default_provider": "openai",
@@ -62,7 +105,29 @@ class TestConfigLoader:
             os.unlink(config_file)
 
     def test_load_from_environment_variables(self):
-        """Test loading configuration from environment variables."""
+        """
+        Test loading configuration from environment variables.
+        
+        Purpose: Verify that ConfigLoader can read configuration from environment variables
+        using the MCE_ prefix convention and properly map them to nested configuration structures.
+        
+        Checkpoints:
+        - Environment variables with MCE_ prefix are recognized
+        - Nested configuration paths (MCE_LLM_DEFAULT_PROVIDER) map correctly
+        - Environment values override default configuration
+        - All major configuration sections can be set via environment
+        
+        Mocks: 
+        - os.environ using patch.dict to temporarily set environment variables
+        
+        Dependencies:
+        - unittest.mock.patch for environment variable mocking
+        - os module for environment access
+        
+        Notes: Uses patch.dict to temporarily modify os.environ without affecting
+        the actual test environment. This ensures tests are isolated and don't
+        interfere with each other or the system environment.
+        """
         env_vars = {
             "MCE_LLM_DEFAULT_PROVIDER": "anthropic",
             "MCE_LLM_DEFAULT_MODEL_NAME": "claude-3-sonnet",
@@ -82,7 +147,31 @@ class TestConfigLoader:
             assert config.log_level == "WARNING"
 
     def test_precedence_env_over_file(self):
-        """Test that environment variables take precedence over config files."""
+        """
+        Test that environment variables take precedence over config files.
+        
+        Purpose: Verify the configuration precedence hierarchy where environment variables
+        should override values specified in configuration files, which is a common
+        pattern for containerized deployments.
+        
+        Checkpoints:
+        - Configuration file values are loaded first
+        - Environment variables override file values for the same keys
+        - Non-overridden file values remain intact
+        - Precedence works for both simple and nested configuration keys
+        
+        Mocks:
+        - os.environ using patch.dict for environment variable simulation
+        
+        Dependencies:
+        - tempfile for creating test configuration file
+        - yaml for configuration file serialization
+        - unittest.mock.patch for environment mocking
+        
+        Notes: This test is crucial for deployment scenarios where base configuration
+        is provided via files but specific values (like API keys or endpoints) are
+        overridden via environment variables in different environments.
+        """
         # Create config file
         config_data = {
             "llm": {
@@ -113,7 +202,28 @@ class TestConfigLoader:
             os.unlink(config_file)
 
     def test_invalid_config_file(self):
-        """Test handling of invalid configuration file."""
+        """
+        Test handling of invalid configuration file.
+        
+        Purpose: Verify that ConfigLoader properly handles and reports errors when
+        encountering malformed YAML files, providing clear error feedback.
+        
+        Checkpoints:
+        - Invalid YAML syntax is detected
+        - Appropriate exception is raised (YAML parsing error)
+        - Error handling doesn't crash the application
+        - Temporary file cleanup occurs even on error
+        
+        Mocks: None - tests actual YAML parsing error handling
+        
+        Dependencies:
+        - tempfile for creating malformed YAML file
+        - pytest for exception testing
+        
+        Notes: This test ensures robust error handling for configuration files that
+        may be manually edited and contain syntax errors. The malformed YAML contains
+        an unclosed bracket to trigger a parsing error.
+        """
         with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
             f.write("invalid: yaml: content: [")
             config_file = f.name
@@ -126,14 +236,53 @@ class TestConfigLoader:
             os.unlink(config_file)
 
     def test_nonexistent_config_file(self):
-        """Test handling of nonexistent configuration file."""
+        """
+        Test handling of nonexistent configuration file.
+        
+        Purpose: Verify that ConfigLoader gracefully handles missing configuration files
+        by falling back to default values rather than crashing.
+        
+        Checkpoints:
+        - No exception is raised for missing file
+        - Default configuration values are used
+        - System remains functional without configuration file
+        
+        Mocks: None - tests actual file system behavior
+        
+        Dependencies: None beyond core ConfigLoader functionality
+        
+        Notes: This test ensures the system is resilient to deployment scenarios
+        where configuration files might be missing or not yet created. The fallback
+        to defaults allows the system to start and potentially be configured later.
+        """
         loader = ConfigLoader()
         # Should not raise error, just use defaults
         config = loader.load(config_file="/nonexistent/config.yaml")
         assert config.llm.default_provider == "mock"
 
     def test_partial_config_file(self):
-        """Test loading partial configuration from file."""
+        """
+        Test loading partial configuration from file.
+        
+        Purpose: Verify that ConfigLoader can handle configuration files that only
+        specify some values, using defaults for unspecified configuration options.
+        
+        Checkpoints:
+        - Specified configuration values are loaded from file
+        - Unspecified values use default configuration
+        - Partial configuration doesn't break the loading process
+        - Mixed file/default configuration produces valid AppConfig
+        
+        Mocks: None - tests actual partial configuration loading
+        
+        Dependencies:
+        - tempfile for creating partial configuration file
+        - yaml for configuration serialization
+        
+        Notes: This test is important for real-world usage where users may only
+        want to override specific configuration values while keeping defaults
+        for everything else. It ensures the merge logic works correctly.
+        """
         config_data = {
             "log_level": "DEBUG"
             # Only specify log_level, other values should use defaults
@@ -156,7 +305,30 @@ class TestConfigLoader:
             os.unlink(config_file)
 
     def test_nested_env_var_mapping(self):
-        """Test mapping of nested environment variables."""
+        """
+        Test mapping of nested environment variables.
+        
+        Purpose: Verify that ConfigLoader can correctly map deeply nested environment
+        variables to complex configuration structures, particularly for provider-specific
+        settings and model parameters.
+        
+        Checkpoints:
+        - Deeply nested environment variables are mapped correctly
+        - Provider-specific configuration (MCE_LLM_PROVIDERS_OPENAI_*) works
+        - Model parameters (MCE_LLM_MODEL_PARAMS_*) are properly typed
+        - Numeric values are converted from strings appropriately
+        
+        Mocks:
+        - os.environ using patch.dict for complex environment variable setup
+        
+        Dependencies:
+        - unittest.mock.patch for environment variable mocking
+        
+        Notes: This test verifies the environment variable naming convention and
+        mapping logic for complex nested structures. It's particularly important
+        for containerized deployments where all configuration must be possible
+        via environment variables.
+        """
         env_vars = {
             "MCE_LLM_PROVIDERS_OPENAI_API_KEY": "test-key-123",
             "MCE_LLM_PROVIDERS_OPENAI_PROVIDER_NAME": "openai",
@@ -175,7 +347,30 @@ class TestConfigLoader:
             assert config.llm.model_params.max_tokens == 2048
 
     def test_validation_error_handling(self):
-        """Test handling of validation errors in configuration."""
+        """
+        Test handling of validation errors in configuration.
+        
+        Purpose: Verify that ConfigLoader properly validates configuration values
+        and raises appropriate errors when invalid values are provided, ensuring
+        data integrity and early error detection.
+        
+        Checkpoints:
+        - Invalid temperature value (> 2.0) is rejected
+        - Invalid max_tokens value (<= 0) is rejected
+        - Validation errors are properly propagated
+        - Configuration validation prevents invalid system state
+        
+        Mocks: None - tests actual Pydantic validation behavior
+        
+        Dependencies:
+        - tempfile for creating invalid configuration file
+        - yaml for configuration serialization
+        - pytest for exception testing
+        
+        Notes: This test ensures that the Pydantic models properly validate
+        configuration values and prevent the system from starting with invalid
+        parameters that could cause runtime errors or unexpected behavior.
+        """
         config_data = {
             "llm": {
                 "model_params": {

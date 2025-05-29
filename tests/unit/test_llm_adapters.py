@@ -21,7 +21,14 @@ class TestOpenAIAdapter:
     
     @pytest.fixture
     def sample_chat_messages(self):
-        """Sample chat messages for testing."""
+        """
+        Sample chat messages for testing.
+        
+        Purpose: Provide consistent test data for chat completion tests.
+        
+        Notes: Creates a typical conversation with system and user messages
+        that represents real-world usage patterns.
+        """
         return [
             ChatMessage(role=MessageRole.SYSTEM, content="You are a helpful assistant."),
             ChatMessage(role=MessageRole.USER, content="What is Python?")
@@ -29,7 +36,14 @@ class TestOpenAIAdapter:
     
     @pytest.fixture
     def sample_model_config(self):
-        """Sample model configuration."""
+        """
+        Sample model configuration.
+        
+        Purpose: Provide consistent model configuration for testing.
+        
+        Notes: Uses OpenAI model naming convention with reasonable parameters
+        for testing chat completions.
+        """
         return ModelConfig(
             model_name="openai/gpt-4",
             temperature=0.7,
@@ -38,14 +52,27 @@ class TestOpenAIAdapter:
     
     @pytest.fixture
     def sample_embedding_config(self):
-        """Sample embedding configuration."""
+        """
+        Sample embedding configuration.
+        
+        Purpose: Provide consistent embedding model configuration for testing.
+        
+        Notes: Uses OpenAI embedding model for testing embedding generation.
+        """
         return EmbeddingConfig(
             model_name="openai/text-embedding-ada-002"
         )
     
     @pytest.fixture
     def mock_openai_client(self):
-        """Mock OpenAI client."""
+        """
+        Mock OpenAI client.
+        
+        Purpose: Create a mock OpenAI client for testing without actual API calls.
+        
+        Notes: Mocks the synchronous OpenAI client structure with chat.completions
+        and embeddings endpoints. OpenAI client methods are synchronous, not async.
+        """
         client = Mock()
         client.chat = Mock()
         client.chat.completions = Mock()
@@ -56,7 +83,14 @@ class TestOpenAIAdapter:
     
     @pytest.fixture
     def openai_chat_response(self):
-        """Mock OpenAI chat response."""
+        """
+        Mock OpenAI chat response.
+        
+        Purpose: Create a realistic mock response that matches OpenAI API structure.
+        
+        Notes: Includes all fields typically returned by OpenAI chat completions API
+        including usage statistics and finish reason.
+        """
         response = Mock()
         response.choices = [Mock()]
         response.choices[0].message = Mock()
@@ -71,7 +105,14 @@ class TestOpenAIAdapter:
     
     @pytest.fixture
     def openai_embedding_response(self):
-        """Mock OpenAI embedding response."""
+        """
+        Mock OpenAI embedding response.
+        
+        Purpose: Create a realistic mock response for embedding generation.
+        
+        Notes: Includes multiple embeddings (for batch processing) and usage statistics
+        matching the OpenAI embeddings API structure.
+        """
         response = Mock()
         response.data = [
             Mock(embedding=[0.1, 0.2, 0.3]),
@@ -86,7 +127,32 @@ class TestOpenAIAdapter:
     @pytest.mark.asyncio
     async def test_get_chat_completion_success(self, mock_openai_client, openai_chat_response,
                                              sample_chat_messages, sample_model_config):
-        """Test successful chat completion with OpenAI adapter."""
+        """
+        Test successful chat completion with OpenAI adapter.
+        
+        Purpose: Verify that the OpenAI adapter correctly handles successful chat completion
+        requests and properly transforms the response into the expected format.
+        
+        Checkpoints:
+        - Adapter returns LLMResponse instance
+        - Response content matches mock API response
+        - Model name is preserved from API response
+        - Usage statistics are correctly extracted and formatted
+        - Finish reason is properly captured
+        - OpenAI client is called with correct parameters
+        
+        Mocks:
+        - mock_openai_client: Mocked OpenAI client to avoid actual API calls
+        - openai_chat_response: Mocked API response structure
+        
+        Dependencies:
+        - OpenAIAdapter class from adapters module
+        - LLMResponse model for response validation
+        - ChatMessage and ModelConfig for input validation
+        
+        Notes: This test verifies the core functionality of the OpenAI adapter
+        including parameter passing, response parsing, and error-free execution.
+        """
         from metadata_code_extractor.integrations.llm.providers.adapters import OpenAIAdapter
         
         # Setup mock
@@ -116,7 +182,32 @@ class TestOpenAIAdapter:
     @pytest.mark.asyncio
     async def test_generate_embeddings_success(self, mock_openai_client, openai_embedding_response,
                                              sample_embedding_config):
-        """Test successful embedding generation with OpenAI adapter."""
+        """
+        Test successful embedding generation with OpenAI adapter.
+        
+        Purpose: Verify that the OpenAI adapter correctly handles embedding generation
+        requests and properly transforms the response into the expected format.
+        
+        Checkpoints:
+        - Adapter returns EmbeddingResponse instance
+        - Embeddings list matches mock API response structure
+        - Model name is preserved from API response
+        - Usage statistics are correctly extracted
+        - Multiple embeddings are handled correctly (batch processing)
+        - OpenAI client is called with correct parameters
+        
+        Mocks:
+        - mock_openai_client: Mocked OpenAI client to avoid actual API calls
+        - openai_embedding_response: Mocked embedding API response
+        
+        Dependencies:
+        - OpenAIAdapter class from adapters module
+        - EmbeddingResponse model for response validation
+        - EmbeddingConfig for input validation
+        
+        Notes: This test verifies embedding generation functionality including
+        batch processing of multiple texts and proper response transformation.
+        """
         from metadata_code_extractor.integrations.llm.providers.adapters import OpenAIAdapter
         
         # Setup mock
@@ -143,7 +234,26 @@ class TestOpenAIAdapter:
     
     @pytest.mark.asyncio
     async def test_is_available_success(self, mock_openai_client):
-        """Test availability check when client is working."""
+        """
+        Test availability check when client is working.
+        
+        Purpose: Verify that the adapter can correctly determine when the OpenAI
+        client is available and functioning properly.
+        
+        Checkpoints:
+        - is_available() returns True when client works
+        - Test call to OpenAI API succeeds
+        - Adapter performs actual connectivity check
+        
+        Mocks:
+        - mock_openai_client: Mocked OpenAI client with successful test response
+        
+        Dependencies:
+        - OpenAIAdapter class from adapters module
+        
+        Notes: The availability check performs a minimal test call to verify
+        the client can communicate with the API successfully.
+        """
         from metadata_code_extractor.integrations.llm.providers.adapters import OpenAIAdapter
         
         # Setup mock for a simple test call
@@ -165,7 +275,26 @@ class TestOpenAIAdapter:
     
     @pytest.mark.asyncio
     async def test_is_available_failure(self, mock_openai_client):
-        """Test availability check when client fails."""
+        """
+        Test availability check when client fails.
+        
+        Purpose: Verify that the adapter correctly detects when the OpenAI client
+        is not available or experiencing connectivity issues.
+        
+        Checkpoints:
+        - is_available() returns False when client fails
+        - Exception during test call is handled gracefully
+        - No unhandled exceptions are raised
+        
+        Mocks:
+        - mock_openai_client: Mocked OpenAI client configured to raise exceptions
+        
+        Dependencies:
+        - OpenAIAdapter class from adapters module
+        
+        Notes: This test ensures robust error handling when the API is unavailable,
+        preventing crashes and enabling graceful degradation.
+        """
         from metadata_code_extractor.integrations.llm.providers.adapters import OpenAIAdapter
         
         # Setup mock to raise an exception
@@ -182,7 +311,29 @@ class TestOpenAIAdapter:
     
     @pytest.mark.asyncio
     async def test_chat_completion_api_error(self, mock_openai_client, sample_chat_messages, sample_model_config):
-        """Test handling of API errors during chat completion."""
+        """
+        Test handling of API errors during chat completion.
+        
+        Purpose: Verify that the adapter properly handles and wraps API errors
+        during chat completion requests, providing consistent error handling.
+        
+        Checkpoints:
+        - API exceptions are caught and wrapped in LLMProviderError
+        - Original error message is preserved
+        - Error handling doesn't crash the adapter
+        - Consistent error interface is maintained
+        
+        Mocks:
+        - mock_openai_client: Mocked OpenAI client configured to raise exceptions
+        
+        Dependencies:
+        - OpenAIAdapter class from adapters module
+        - LLMProviderError for error wrapping
+        - pytest for exception testing
+        
+        Notes: This test ensures that API errors are properly handled and wrapped
+        in a consistent error type, enabling proper error handling upstream.
+        """
         from metadata_code_extractor.integrations.llm.providers.adapters import OpenAIAdapter
         from metadata_code_extractor.integrations.llm.client import LLMProviderError
         
@@ -198,7 +349,29 @@ class TestOpenAIAdapter:
     
     @pytest.mark.asyncio
     async def test_embeddings_api_error(self, mock_openai_client, sample_embedding_config):
-        """Test handling of API errors during embedding generation."""
+        """
+        Test handling of API errors during embedding generation.
+        
+        Purpose: Verify that the adapter properly handles and wraps API errors
+        during embedding generation requests, maintaining consistent error handling.
+        
+        Checkpoints:
+        - API exceptions are caught and wrapped in LLMProviderError
+        - Original error message is preserved
+        - Error handling doesn't crash the adapter
+        - Consistent error interface is maintained
+        
+        Mocks:
+        - mock_openai_client: Mocked OpenAI client configured to raise exceptions
+        
+        Dependencies:
+        - OpenAIAdapter class from adapters module
+        - LLMProviderError for error wrapping
+        - pytest for exception testing
+        
+        Notes: This test ensures that embedding API errors are properly handled
+        and wrapped consistently with chat completion errors.
+        """
         from metadata_code_extractor.integrations.llm.providers.adapters import OpenAIAdapter
         from metadata_code_extractor.integrations.llm.client import LLMProviderError
         
@@ -213,7 +386,27 @@ class TestOpenAIAdapter:
             await adapter.generate_embeddings(["test"], sample_embedding_config)
     
     def test_adapter_initialization_with_config(self):
-        """Test adapter initialization with configuration."""
+        """
+        Test adapter initialization with configuration.
+        
+        Purpose: Verify that the OpenAI adapter can be initialized with custom
+        configuration parameters and properly passes them to the OpenAI client.
+        
+        Checkpoints:
+        - Configuration parameters are passed to OpenAI client constructor
+        - API key, base URL, and organization are handled correctly
+        - Client initialization occurs with expected parameters
+        
+        Mocks:
+        - OpenAI client constructor using patch to verify initialization parameters
+        
+        Dependencies:
+        - OpenAIAdapter class from adapters module
+        - unittest.mock.patch for constructor mocking
+        
+        Notes: This test ensures that custom configuration (like API keys and
+        custom endpoints) are properly passed through to the underlying client.
+        """
         from metadata_code_extractor.integrations.llm.providers.adapters import OpenAIAdapter
         
         config = {
@@ -233,7 +426,27 @@ class TestOpenAIAdapter:
             )
     
     def test_adapter_initialization_without_config(self):
-        """Test adapter initialization without configuration (should use env vars)."""
+        """
+        Test adapter initialization without configuration (should use env vars).
+        
+        Purpose: Verify that the OpenAI adapter can be initialized without explicit
+        configuration and relies on environment variables for client setup.
+        
+        Checkpoints:
+        - OpenAI client is created with default constructor (no parameters)
+        - Environment variables are used for configuration
+        - Adapter initializes successfully without explicit config
+        
+        Mocks:
+        - OpenAI client constructor using patch to verify default initialization
+        
+        Dependencies:
+        - OpenAIAdapter class from adapters module
+        - unittest.mock.patch for constructor mocking
+        
+        Notes: This test ensures that the adapter works with standard OpenAI
+        environment variable configuration (OPENAI_API_KEY, etc.).
+        """
         from metadata_code_extractor.integrations.llm.providers.adapters import OpenAIAdapter
         
         with patch('metadata_code_extractor.integrations.llm.providers.adapters.OpenAI') as mock_openai:
@@ -248,7 +461,13 @@ class TestMockAdapter:
     
     @pytest.fixture
     def sample_chat_messages(self):
-        """Sample chat messages for testing."""
+        """
+        Sample chat messages for testing.
+        
+        Purpose: Provide consistent test data for mock adapter testing.
+        
+        Notes: Same structure as OpenAI adapter tests for consistency.
+        """
         return [
             ChatMessage(role=MessageRole.SYSTEM, content="You are a helpful assistant."),
             ChatMessage(role=MessageRole.USER, content="What is Python?")
@@ -256,7 +475,13 @@ class TestMockAdapter:
     
     @pytest.fixture
     def sample_model_config(self):
-        """Sample model configuration."""
+        """
+        Sample model configuration.
+        
+        Purpose: Provide consistent model configuration for mock testing.
+        
+        Notes: Uses mock model names appropriate for testing scenarios.
+        """
         return ModelConfig(
             model_name="mock-model",
             temperature=0.7,
@@ -265,14 +490,42 @@ class TestMockAdapter:
     
     @pytest.fixture
     def sample_embedding_config(self):
-        """Sample embedding configuration."""
+        """
+        Sample embedding configuration.
+        
+        Purpose: Provide consistent embedding configuration for mock testing.
+        
+        Notes: Uses mock embedding model for testing scenarios.
+        """
         return EmbeddingConfig(
             model_name="mock-embedding-model"
         )
     
     @pytest.mark.asyncio
     async def test_get_chat_completion_success(self, sample_chat_messages, sample_model_config):
-        """Test successful chat completion with Mock adapter."""
+        """
+        Test successful chat completion with Mock adapter.
+        
+        Purpose: Verify that the Mock adapter generates appropriate mock responses
+        for chat completion requests without requiring external dependencies.
+        
+        Checkpoints:
+        - Adapter returns LLMResponse instance
+        - Response content includes "Mock response for:" prefix
+        - User message content is included in response (context awareness)
+        - Model name matches configuration
+        - Usage statistics are provided (mock values)
+        - Finish reason is set appropriately
+        
+        Mocks: None - tests actual mock adapter implementation
+        
+        Dependencies:
+        - MockAdapter class from adapters module
+        - LLMResponse model for response validation
+        
+        Notes: The mock adapter should generate deterministic responses that
+        include context from the input messages for testing purposes.
+        """
         from metadata_code_extractor.integrations.llm.providers.adapters import MockAdapter
         
         # Create adapter
@@ -291,7 +544,29 @@ class TestMockAdapter:
     
     @pytest.mark.asyncio
     async def test_generate_embeddings_success(self, sample_embedding_config):
-        """Test successful embedding generation with Mock adapter."""
+        """
+        Test successful embedding generation with Mock adapter.
+        
+        Purpose: Verify that the Mock adapter generates appropriate mock embeddings
+        for testing without requiring external embedding services.
+        
+        Checkpoints:
+        - Adapter returns EmbeddingResponse instance
+        - Number of embeddings matches number of input texts
+        - Embedding dimensions are standard (384)
+        - Model name matches configuration
+        - Usage statistics are provided (mock values)
+        - Embeddings are deterministic for same input
+        
+        Mocks: None - tests actual mock adapter implementation
+        
+        Dependencies:
+        - MockAdapter class from adapters module
+        - EmbeddingResponse model for response validation
+        
+        Notes: Mock embeddings should be deterministic to enable consistent
+        testing while providing realistic vector dimensions.
+        """
         from metadata_code_extractor.integrations.llm.providers.adapters import MockAdapter
         
         # Create adapter
@@ -315,7 +590,25 @@ class TestMockAdapter:
     
     @pytest.mark.asyncio
     async def test_is_available_always_true(self):
-        """Test that mock adapter is always available."""
+        """
+        Test that mock adapter is always available.
+        
+        Purpose: Verify that the Mock adapter always reports as available,
+        ensuring tests can run without external dependencies.
+        
+        Checkpoints:
+        - is_available() always returns True
+        - No external dependencies are required
+        - Adapter is always ready for testing
+        
+        Mocks: None - tests actual mock adapter behavior
+        
+        Dependencies:
+        - MockAdapter class from adapters module
+        
+        Notes: Mock adapter should always be available to ensure tests can
+        run in any environment without external service dependencies.
+        """
         from metadata_code_extractor.integrations.llm.providers.adapters import MockAdapter
         
         # Create adapter
@@ -329,7 +622,26 @@ class TestMockAdapter:
     
     @pytest.mark.asyncio
     async def test_mock_response_includes_context(self, sample_model_config):
-        """Test that mock responses include context from messages."""
+        """
+        Test that mock responses include context from messages.
+        
+        Purpose: Verify that the Mock adapter generates different responses based
+        on input context, making tests more realistic and debuggable.
+        
+        Checkpoints:
+        - Different input messages produce different responses
+        - Input message content is reflected in response
+        - Context awareness improves test realism
+        
+        Mocks: None - tests actual mock adapter context handling
+        
+        Dependencies:
+        - MockAdapter class from adapters module
+        - ChatMessage for input variation
+        
+        Notes: Context-aware mock responses help identify issues in message
+        handling and make test failures more informative.
+        """
         from metadata_code_extractor.integrations.llm.providers.adapters import MockAdapter
         
         # Create adapter
@@ -348,7 +660,25 @@ class TestMockAdapter:
         assert "Goodbye" in result2.content
     
     def test_mock_adapter_initialization(self):
-        """Test mock adapter initialization."""
+        """
+        Test mock adapter initialization.
+        
+        Purpose: Verify that the Mock adapter can be initialized with custom
+        parameters for response delay and failure simulation.
+        
+        Checkpoints:
+        - Default initialization sets reasonable default values
+        - Custom initialization preserves provided parameters
+        - Response delay and failure rate are configurable
+        
+        Mocks: None - tests actual mock adapter initialization
+        
+        Dependencies:
+        - MockAdapter class from adapters module
+        
+        Notes: Configurable mock behavior enables testing of error conditions
+        and performance scenarios without external dependencies.
+        """
         from metadata_code_extractor.integrations.llm.providers.adapters import MockAdapter
         
         # Test with default settings
@@ -363,7 +693,28 @@ class TestMockAdapter:
     
     @pytest.mark.asyncio
     async def test_mock_adapter_simulated_failure(self, sample_chat_messages, sample_model_config):
-        """Test mock adapter simulated failures."""
+        """
+        Test mock adapter simulated failures.
+        
+        Purpose: Verify that the Mock adapter can simulate API failures for
+        testing error handling and resilience scenarios.
+        
+        Checkpoints:
+        - High failure rate (100%) consistently produces errors
+        - Simulated failures raise LLMProviderError
+        - Error message indicates simulated failure
+        - Failure simulation enables error path testing
+        
+        Mocks: None - tests actual mock adapter failure simulation
+        
+        Dependencies:
+        - MockAdapter class from adapters module
+        - LLMProviderError for error validation
+        - pytest for exception testing
+        
+        Notes: Simulated failures enable testing of error handling, retry logic,
+        and graceful degradation without relying on actual API failures.
+        """
         from metadata_code_extractor.integrations.llm.providers.adapters import MockAdapter
         from metadata_code_extractor.integrations.llm.client import LLMProviderError
         
@@ -376,7 +727,27 @@ class TestMockAdapter:
     
     @pytest.mark.asyncio
     async def test_mock_adapter_response_delay(self, sample_chat_messages, sample_model_config):
-        """Test mock adapter response delay."""
+        """
+        Test mock adapter response delay.
+        
+        Purpose: Verify that the Mock adapter can simulate response delays for
+        testing timeout handling and performance scenarios.
+        
+        Checkpoints:
+        - Configured delay is actually applied
+        - Response time meets minimum delay requirement
+        - Delayed responses still return valid results
+        - Delay simulation enables performance testing
+        
+        Mocks: None - tests actual mock adapter delay implementation
+        
+        Dependencies:
+        - MockAdapter class from adapters module
+        - time module for delay measurement
+        
+        Notes: Response delay simulation enables testing of timeout handling,
+        user experience with slow APIs, and performance optimization scenarios.
+        """
         from metadata_code_extractor.integrations.llm.providers.adapters import MockAdapter
         import time
         
@@ -397,7 +768,28 @@ class TestAdapterFactory:
     """Test cases for adapter factory functionality."""
     
     def test_create_openai_adapter(self):
-        """Test creating OpenAI adapter through factory."""
+        """
+        Test creating OpenAI adapter through factory.
+        
+        Purpose: Verify that the adapter factory can create OpenAI adapters
+        with proper configuration and initialization.
+        
+        Checkpoints:
+        - Factory creates OpenAIAdapter instance
+        - Configuration is passed through correctly
+        - Adapter type is correct
+        
+        Mocks:
+        - OpenAI client constructor to avoid actual client creation
+        
+        Dependencies:
+        - create_adapter factory function
+        - OpenAIAdapter class
+        - unittest.mock.patch for client mocking
+        
+        Notes: Factory pattern enables dynamic adapter creation based on
+        configuration, supporting multiple LLM providers.
+        """
         from metadata_code_extractor.integrations.llm.providers.adapters import create_adapter
         
         config = {
@@ -413,7 +805,26 @@ class TestAdapterFactory:
             assert isinstance(adapter, OpenAIAdapter)
     
     def test_create_mock_adapter(self):
-        """Test creating Mock adapter through factory."""
+        """
+        Test creating Mock adapter through factory.
+        
+        Purpose: Verify that the adapter factory can create Mock adapters
+        with custom configuration parameters.
+        
+        Checkpoints:
+        - Factory creates MockAdapter instance
+        - Custom configuration parameters are preserved
+        - Adapter type is correct
+        
+        Mocks: None - tests actual mock adapter creation
+        
+        Dependencies:
+        - create_adapter factory function
+        - MockAdapter class
+        
+        Notes: Mock adapter creation through factory enables consistent
+        adapter instantiation patterns across different provider types.
+        """
         from metadata_code_extractor.integrations.llm.providers.adapters import create_adapter
         
         config = {
@@ -430,7 +841,26 @@ class TestAdapterFactory:
         assert adapter.fail_rate == 0.1
     
     def test_create_adapter_invalid_provider(self):
-        """Test creating adapter with invalid provider."""
+        """
+        Test creating adapter with invalid provider.
+        
+        Purpose: Verify that the adapter factory properly handles invalid
+        provider names and raises appropriate errors.
+        
+        Checkpoints:
+        - Invalid provider name raises ValueError
+        - Error message indicates unknown provider
+        - Factory validates provider names
+        
+        Mocks: None - tests actual factory validation
+        
+        Dependencies:
+        - create_adapter factory function
+        - pytest for exception testing
+        
+        Notes: Proper error handling prevents runtime failures when
+        unsupported providers are specified in configuration.
+        """
         from metadata_code_extractor.integrations.llm.providers.adapters import create_adapter
         
         config = {"provider": "invalid"}
@@ -439,7 +869,26 @@ class TestAdapterFactory:
             create_adapter(config)
     
     def test_create_adapter_missing_provider(self):
-        """Test creating adapter without provider specified."""
+        """
+        Test creating adapter without provider specified.
+        
+        Purpose: Verify that the adapter factory requires a provider to be
+        specified and raises appropriate errors when missing.
+        
+        Checkpoints:
+        - Missing provider raises ValueError
+        - Error message indicates provider requirement
+        - Factory validates required configuration
+        
+        Mocks: None - tests actual factory validation
+        
+        Dependencies:
+        - create_adapter factory function
+        - pytest for exception testing
+        
+        Notes: Requiring explicit provider specification prevents ambiguous
+        configuration and ensures intentional adapter selection.
+        """
         from metadata_code_extractor.integrations.llm.providers.adapters import create_adapter
         
         config = {}
