@@ -19,34 +19,73 @@ Please refer to the following for the current architecture and design:
 
 ## System Architecture Overview
 
+```mermaid
+graph TD
+    A["Code Scanner"] --> B["Symbol Map"]
+    A --> C["Target Selection"]
+    B --> D["Metadata Extraction"]
+    C --> D
+    D --> E["Structured Metadata"]
+    D --> F["Vector DB Storage"]
+    E --> G["Graph Database"]
+    F --> H["Unstructured Chunks"]
+    H --> I["Vector Database"]
+    
+    subgraph "Code Scanner"
+        A1["Broad Scan"]
+        A2["Focused Scan"]
+    end
+    
+    subgraph "Storage Layer"
+        G
+        I
+    end
 ```
-┌─────────────────────────────────────────┐
-│              Code Scanner               │
-├─────────────┬───────────────────────────┤
-│ Broad Scan  │       Focused Scan        │
-└─────┬───────┴─────────────┬─────────────┘
-      │                     │
-      ▼                     ▼
-┌─────────────┐     ┌───────────────────┐
-│ Symbol Map  │◄────┤ Target Selection  │
-└─────┬───────┘     └─────────┬─────────┘
-      │                       │
-      │       ┌───────────────┘
-      │       │
-      ▼       ▼
-┌─────────────────────────┐    ┌────────────────────┐
-│   Metadata Extraction   │    │ Vector DB Storage  │
-└────────────┬────────────┘    └─────────┬──────────┘
-             │                           │
-             ▼                           ▼
-┌────────────────────────┐     ┌─────────────────────┐
-│  Structured Metadata   │     │ Unstructured Chunks │
-└────────────┬───────────┘     └─────────┬───────────┘
-             │                           │
-             ▼                           ▼
-┌────────────────────────┐     ┌─────────────────────┐
-│    Graph Database      │     │   Vector Database   │
-└────────────────────────┘     └─────────────────────┘
+
+## High-Level Component Architecture
+
+```mermaid
+graph TB
+    subgraph "Input Layer"
+        SC[Source Code Files]
+        DOC[Documentation]
+    end
+    
+    subgraph "Processing Layer"
+        CS[Code Scanner]
+        SI[Symbol Indexer]
+        ME[Metadata Extractor]
+        CHK[Chunking System]
+        TS[Target Selection]
+    end
+    
+    subgraph "Storage Layer"
+        GDB[(Graph Database)]
+        VDB[(Vector Database)]
+        LS[(Local Storage)]
+    end
+    
+    subgraph "Interface Layer"
+        CLI[Command Line Interface]
+        API[REST API]
+    end
+    
+    SC --> CS
+    DOC --> CS
+    CS --> SI
+    CS --> CHK
+    SI --> ME
+    CHK --> ME
+    ME --> TS
+    ME --> GDB
+    CHK --> VDB
+    TS --> CS
+    
+    CLI --> CS
+    API --> CS
+    
+    GDB --> LS
+    VDB --> LS
 ```
 
 ## Component Breakdown
@@ -99,69 +138,118 @@ Please refer to the following for the current architecture and design:
 ## Data Flow
 
 ### Broad Scan Flow
-1. Input source code file loaded by Code Scanner
-2. Parser uses LLM with proper prompt to extract metadata information from code
-3. Symbol Indexer creates symbol map
-4. Chunking System creates overlapping segments
-5. Metadata Extractor processes each chunk
-6. Structured metadata sent to Graph DB
-7. Unstructured chunks sent to Vector DB
-8. Summary report generated
+
+```mermaid
+flowchart TD
+    A[Source Code File] --> B[Code Scanner]
+    B --> C[Parser with LLM]
+    C --> D[Symbol Indexer]
+    C --> E[Chunking System]
+    D --> F[Symbol Map]
+    E --> G[Overlapping Segments]
+    F --> H[Metadata Extractor]
+    G --> H
+    H --> I[Structured Metadata]
+    H --> J[Unstructured Chunks]
+    I --> K[(Graph DB)]
+    J --> L[(Vector DB)]
+    K --> M[Summary Report]
+    L --> M
+```
 
 ### Focused Scan Flow
-1. Input contains target symbol or query
-2. Target Selection identifies relevant code sections
-   - Uses Symbol Map for exact matches
-   - Uses Vector DB for semantic matches
-3. Context windows determined for each match
-4. Code Scanner processes each context window
-5. Extracted metadata integrated with existing data
-6. Gaps and conflicts resolved
-7. Updated data stored in databases
+
+```mermaid
+flowchart TD
+    A[Target Symbol/Query] --> B[Target Selection]
+    B --> C[Symbol Map Lookup]
+    B --> D[Vector DB Search]
+    C --> E[Exact Matches]
+    D --> F[Semantic Matches]
+    E --> G[Context Windows]
+    F --> G
+    G --> H[Code Scanner]
+    H --> I[Metadata Extraction]
+    I --> J[Integration with Existing Data]
+    J --> K[Gap Resolution]
+    K --> L[(Updated Databases)]
+```
 
 ## Parser Implementation Approach
 
 ### LLM-Based Parser Structure
+
+```mermaid
+flowchart TD
+    A[Parser Interface] --> B[Language Detection]
+    B --> C[Prompt Template Selection]
+    C --> D[Code Chunking]
+    D --> E[LLM Invocation]
+    E --> F[Response Parsing]
+    F --> G[Metadata Extraction]
+    G --> H[Symbol Map Generation]
+    
+    subgraph "Template Selection Logic"
+        C1[Programming Language]
+        C2[Extraction Goals]
+        C3[File Complexity]
+        C1 --> C
+        C2 --> C
+        C3 --> C
+    end
+    
+    subgraph "LLM Processing"
+        E1[API Call Management]
+        E2[Rate Limiting]
+        E3[Error Handling]
+        E1 --> E
+        E2 --> E
+        E3 --> E
+    end
 ```
-┌───────────────────────────┐
-│    Parser Interface       │
-└───────────┬───────────────┘
-            │
-            ▼
-┌───────────────────────────┐
-│   Language Detection      │
-└───────────┬───────────────┘
-            │
-            ▼
-┌───────────────────────────┐
-│   Prompt Template         │
-│   Selection               │
-└───────────┬───────────────┘
-            │
-            ▼
-┌───────────────────────────┐
-│   Code Chunking           │
-└───────────┬───────────────┘
-            │
-            ▼
-┌───────────────────────────┐
-│   LLM Invocation          │
-└───────────┬───────────────┘
-            │
-            ▼
-┌───────────────────────────┐
-│   Response Parsing        │
-└───────────┬───────────────┘
-            │
-            ▼
-┌───────────────────────────┐
-│   Metadata Extraction     │
-└───────────┬───────────────┘
-            │
-            ▼
-┌───────────────────────────┐
-│   Symbol Map Generation   │
-└───────────────────────────┘
+
+### Parser Component Details
+
+```mermaid
+graph LR
+    subgraph "Parser Interface"
+        PI[Parser Interface]
+        FC[File Loading]
+        PP[Preprocessing]
+        CM[Configuration Management]
+    end
+    
+    subgraph "Language Detection"
+        LD[Language Detection]
+        FE[File Extension Analysis]
+        CA[Content Analysis]
+        LP[Language-specific Parser Selection]
+    end
+    
+    subgraph "Prompt Management"
+        PTS[Prompt Template Selection]
+        LC[Language Context]
+        EG[Extraction Goals]
+        FC2[File Complexity Assessment]
+    end
+    
+    subgraph "Processing Pipeline"
+        CC[Code Chunking]
+        CO[Context Overlap]
+        CP[Context Preservation]
+        LI[LLM Invocation]
+        RP[Response Parsing]
+        ME[Metadata Extraction]
+        SMG[Symbol Map Generation]
+    end
+    
+    PI --> LD
+    LD --> PTS
+    PTS --> CC
+    CC --> LI
+    LI --> RP
+    RP --> ME
+    ME --> SMG
 ```
 
 ### Key Parser Components
@@ -219,6 +307,58 @@ The implementation will follow these steps:
 6. Develop symbol map generation from extraction results
 7. Add support for additional languages
 
+## Database Architecture
+
+```mermaid
+graph TB
+    subgraph "Application Layer"
+        APP[Application Code]
+        API[Database API Layer]
+    end
+    
+    subgraph "Adapter Layer"
+        GDA[Graph DB Adapter]
+        VDA[Vector DB Adapter]
+        LSA[Local Storage Adapter]
+    end
+    
+    subgraph "Storage Layer"
+        subgraph "Graph Database"
+            GDB[(Neo4j)]
+            NODES[Entity Nodes]
+            RELS[Relationships]
+        end
+        
+        subgraph "Vector Database"
+            VDB[(Vector Store)]
+            CHUNKS[Code Chunks]
+            EMBEDS[Embeddings]
+        end
+        
+        subgraph "Local Storage"
+            JSON[JSON Files]
+            CACHE[Cache Files]
+            LOGS[Log Files]
+        end
+    end
+    
+    APP --> API
+    API --> GDA
+    API --> VDA
+    API --> LSA
+    
+    GDA --> GDB
+    VDA --> VDB
+    LSA --> JSON
+    LSA --> CACHE
+    LSA --> LOGS
+    
+    NODES --> GDB
+    RELS --> GDB
+    CHUNKS --> VDB
+    EMBEDS --> VDB
+```
+
 ## Key Interfaces
 
 ### Code Scanner Interface
@@ -265,7 +405,73 @@ def output_unstructured_chunks(chunks: List[TextChunk]) -> None:
 
 ## LLM Prompt System
 
-### Prompt Template Categories
+### Prompt Template Architecture
+
+```mermaid
+graph TD
+    subgraph "Prompt Categories"
+        EE[Entity Extraction]
+        FE[Field Extraction]
+        RD[Relationship Detection]
+        VR[Validation Rules]
+        TL[Transformation Logic]
+        LT[Lineage Tracking]
+    end
+    
+    subgraph "Context Management"
+        CC[Code Chunking]
+        CP[Context Preservation]
+        PP[Prompt Preambles]
+        RT[Response Templates]
+    end
+    
+    subgraph "Response Processing"
+        SOP[Structured Output Parsing]
+        VL[Validation Logic]
+        EH[Error Handling]
+        CS[Confidence Scoring]
+    end
+    
+    EE --> CC
+    FE --> CC
+    RD --> CC
+    VR --> CC
+    TL --> CC
+    LT --> CC
+    
+    CC --> SOP
+    CP --> SOP
+    PP --> SOP
+    RT --> SOP
+    
+    SOP --> VL
+    VL --> EH
+    EH --> CS
+```
+
+### Prompt Processing Flow
+
+```mermaid
+sequenceDiagram
+    participant C as Code Input
+    participant PT as Prompt Template
+    participant LLM as LLM Provider
+    participant RP as Response Parser
+    participant ME as Metadata Extractor
+    
+    C->>PT: Code chunk + context
+    PT->>PT: Select appropriate template
+    PT->>PT: Format prompt with code
+    PT->>LLM: Send formatted prompt
+    LLM->>RP: Return response
+    RP->>RP: Parse JSON/structured output
+    RP->>RP: Validate response format
+    RP->>ME: Cleaned metadata
+    ME->>ME: Extract entities/relationships
+    ME->>ME: Generate confidence scores
+```
+
+### Template Categories
 1. **Entity Extraction Prompts**: For identifying data entities (classes, tables, models)
 2. **Field Extraction Prompts**: For extracting fields, attributes, and their properties
 3. **Relationship Detection Prompts**: For identifying connections between entities
